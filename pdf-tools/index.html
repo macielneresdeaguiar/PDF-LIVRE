@@ -167,6 +167,10 @@ nav button.active{color:#fff;background:var(--accent)}
 .fopt{flex:1;min-width:150px;background:#fff;color:#111;border:2px solid transparent;border-radius:10px;padding:14px 10px;font-size:24px;text-align:center;cursor:pointer;white-space:nowrap;overflow:hidden}
 .fopt.sel{border-color:var(--accent)}
 #sig-img-preview{max-width:100%;max-height:170px;border-radius:10px;background:#fff;display:none;margin-top:12px}
+/* ---------- Drop veil (soltar em qualquer lugar) ---------- */
+#dropveil{display:none;position:fixed;inset:0;z-index:400;background:rgba(108,92,231,.16);backdrop-filter:blur(2px);pointer-events:none;place-items:center}
+#dropveil.on{display:grid}
+#dropveil .in{border:3px dashed var(--accent2);border-radius:24px;padding:40px 64px;background:rgba(14,17,23,.88);font-size:21px;font-weight:800;box-shadow:var(--shadow)}
 /* ---------- Overlay / toast ---------- */
 #overlay{display:none;position:fixed;inset:0;background:rgba(10,12,17,.82);z-index:200;place-items:center;backdrop-filter:blur(4px)}
 #overlay.on{display:grid}
@@ -412,6 +416,7 @@ footer b{color:var(--green)}
 
 <footer>PDF Livre — processamento 100% local no seu navegador. <b>Nenhum arquivo é enviado a servidores.</b> Sem limites, sem cadastro, sem custo.</footer>
 
+<div id="dropveil"><div class="in">📥 Solte os PDFs aqui</div></div>
 <div id="overlay"><div class="obox">
   <div class="spinner"></div>
   <h3 id="ov-title">Processando…</h3>
@@ -494,6 +499,43 @@ function setupDrop(el, onFiles, multi){
     onFiles(fs);
   });
 }
+/* ---- soltar/colar PDFs em qualquer lugar da página ---- */
+function isPdfFile(f){ return f.type==='application/pdf' || f.name.toLowerCase().endsWith('.pdf'); }
+function routeFiles(fs){
+  fs = fs.filter(isPdfFile);
+  if(!fs.length){ toast('Nenhum PDF encontrado no que você soltou/colou.', true); return; }
+  const v = document.querySelector('.view.active').id.replace('view-','');
+  if(v==='merge') addMergeFiles(fs);
+  else if(v==='organize') orgLoadFiles(fs);
+  else if(v==='compress') compLoad(fs[0]);
+  else if(v==='sign') signLoad(fs[0]);
+  else if(fs.length>1){ go('merge'); addMergeFiles(fs); toast('Vários arquivos: abri a ferramenta Juntar. Use o menu se quiser outra.'); }
+  else { go('organize'); orgLoadFiles(fs); toast('Abri a ferramenta Organizar. Use o menu se quiser outra.'); }
+}
+function dragHasFiles(e){ return e.dataTransfer && [...(e.dataTransfer.types||[])].includes('Files'); }
+let dragDepth = 0;
+window.addEventListener('dragenter', e=>{
+  if(!dragHasFiles(e)) return;
+  e.preventDefault(); dragDepth++;
+  $('#dropveil').classList.add('on');
+});
+window.addEventListener('dragover', e=>{ if(dragHasFiles(e)) e.preventDefault(); });
+window.addEventListener('dragleave', e=>{
+  if(!dragHasFiles(e)) return;
+  if(--dragDepth<=0){ dragDepth=0; $('#dropveil').classList.remove('on'); }
+});
+window.addEventListener('drop', e=>{
+  dragDepth=0; $('#dropveil').classList.remove('on');
+  if(!dragHasFiles(e)) return;
+  e.preventDefault();
+  if(e.target.closest && e.target.closest('.drop')) return; // a própria zona já tratou
+  routeFiles([...e.dataTransfer.files]);
+});
+document.addEventListener('paste', e=>{
+  const fs=[...(e.clipboardData?.files||[])];
+  if(fs.length){ e.preventDefault(); routeFiles(fs); }
+});
+
 async function loadPdfJs(bytes){
   return pdfjsLib.getDocument({data: bytes.slice(0)}).promise;
 }
@@ -582,6 +624,35 @@ function mergeMove(i,d){
 }
 function mergeRemove(i){ mergeFiles.splice(i,1); renderMergeList(); }
 
+/* Copia a tabela de camadas (OCProperties) do PDF de origem para o destino.
+   Sem isso, PDFs com camadas (Word, Illustrator, scanners) podem sair com
+   páginas em branco: o conteúdo existe mas fica invisível. */
+function copyOCProperties(out, src){
+  try{
+    const srcOC = src.catalog.get(PDFLib.PDFName.of('OCProperties'));
+    if(!srcOC) return;
+    const copier = PDFLib.PDFObjectCopier.for(src.context, out.context);
+    const oc = copier.copy(src.context.lookup(srcOC));
+    const existing = out.catalog.get(PDFLib.PDFName.of('OCProperties'));
+    if(!existing){
+      out.catalog.set(PDFLib.PDFName.of('OCProperties'), oc);
+      return;
+    }
+    // já existe (outro arquivo também tinha camadas): mescla as listas
+    const exOC = out.context.lookup(existing);
+    const exOCGs = exOC.get(PDFLib.PDFName.of('OCGs'));
+    const newOCGs = oc.get(PDFLib.PDFName.of('OCGs'));
+    if(exOCGs && newOCGs){
+      newOCGs.asArray().forEach(ref=>exOCGs.push(ref));
+      const exD = exOC.get(PDFLib.PDFName.of('D')), nD = oc.get(PDFLib.PDFName.of('D'));
+      if(exD && nD){
+        const exON = exD.get(PDFLib.PDFName.of('ON')), nON = nD.get(PDFLib.PDFName.of('ON'));
+        if(exON && nON) nON.asArray().forEach(ref=>exON.push(ref));
+      }
+    }
+  }catch(e){ console.warn('OCProperties: não foi possível copiar', e); }
+}
+
 async function doMerge(){
   if(mergeFiles.length<2) return;
   overlay(true,'Juntando PDFs…');
@@ -589,13 +660,14 @@ async function doMerge(){
     const out = await PDFDocument.create();
     for(let i=0;i<mergeFiles.length;i++){
       prog(i/mergeFiles.length);
-      const src = await PDFDocument.load(mergeFiles[i].bytes, {ignoreEncryption:true});
+      const src = await PDFDocument.load(mergeFiles[i].bytes, {ignoreEncryption:true, updateMetadata:false});
       const pages = await out.copyPages(src, src.getPageIndices());
       pages.forEach(p=>out.addPage(p));
+      copyOCProperties(out, src);
       await new Promise(r=>setTimeout(r,0));
     }
     prog(1);
-    const bytes = await out.save({useObjectStreams:true});
+    const bytes = await out.save({useObjectStreams:false});
     download(bytes, 'juntado.pdf');
     toast('✅ PDFs juntados com sucesso!');
   }catch(e){
@@ -738,7 +810,10 @@ async function doOrganize(){
   try{
     const out = await PDFDocument.create();
     const loaded = {};
-    for(const id in orgDocs) loaded[id] = await PDFDocument.load(orgDocs[id].bytes,{ignoreEncryption:true});
+    for(const id in orgDocs){
+      loaded[id] = await PDFDocument.load(orgDocs[id].bytes,{ignoreEncryption:true, updateMetadata:false});
+      copyOCProperties(out, loaded[id]);
+    }
     for(let i=0;i<orgPages.length;i++){
       prog(i/orgPages.length);
       const pg = orgPages[i];
@@ -756,7 +831,7 @@ async function doOrganize(){
       if(i%20===0) await new Promise(r=>setTimeout(r,0));
     }
     prog(1);
-    const bytes = await out.save({useObjectStreams:true});
+    const bytes = await out.save({useObjectStreams:false});
     download(bytes, orgOriginalName+'_organizado.pdf');
     toast('✅ PDF organizado com sucesso!');
   }catch(e){
@@ -1094,6 +1169,19 @@ async function doSign(){
       const {width:pw, height:ph} = pg.getSize();
       const w = pl.wr*pw, h = w*(curSig.h/curSig.w);
       pg.drawImage(png,{ x:pl.xr*pw, y:ph-(pl.yr*ph)-h, width:w, height:h });
+    });
+    prog(1);
+    const bytes = await doc.save({useObjectStreams:true});
+    download(bytes, signFile.name.replace(/\.pdf$/i,'')+'_assinado.pdf');
+    toast('✅ PDF assinado com sucesso!');
+  }catch(e){
+    console.error(e); toast('Erro ao assinar: '+e.message, true);
+  }finally{ overlay(false); }
+}
+</script>
+</body>
+</html>
+height:h });
     });
     prog(1);
     const bytes = await doc.save({useObjectStreams:true});

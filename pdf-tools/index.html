@@ -514,23 +514,33 @@ function routeFiles(fs){
 }
 function dragHasFiles(e){ return e.dataTransfer && [...(e.dataTransfer.types||[])].includes('Files'); }
 let dragDepth = 0;
+function hideVeil(){ dragDepth=0; const v=$('#dropveil'); if(v) v.classList.remove('on'); }
+/* Fase de CAPTURA: intercepta arrastar de ARQUIVOS antes de qualquer outro
+   handler (cartões de reordenação, zonas de drop, etc.). Arrastos internos
+   de reordenação (sem 'Files') passam direto e continuam funcionando. */
 window.addEventListener('dragenter', e=>{
   if(!dragHasFiles(e)) return;
   e.preventDefault(); dragDepth++;
-  $('#dropveil').classList.add('on');
-});
-window.addEventListener('dragover', e=>{ if(dragHasFiles(e)) e.preventDefault(); });
+  const v=$('#dropveil'); if(v) v.classList.add('on');
+}, true);
+window.addEventListener('dragover', e=>{
+  if(!dragHasFiles(e)) return;
+  e.preventDefault(); e.stopPropagation();
+  try{ e.dataTransfer.dropEffect='copy'; }catch(_){}
+}, true);
 window.addEventListener('dragleave', e=>{
   if(!dragHasFiles(e)) return;
-  if(--dragDepth<=0){ dragDepth=0; $('#dropveil').classList.remove('on'); }
-});
+  if(--dragDepth<=0) hideVeil();
+}, true);
 window.addEventListener('drop', e=>{
-  dragDepth=0; $('#dropveil').classList.remove('on');
-  if(!dragHasFiles(e)) return;
-  e.preventDefault();
-  if(e.target.closest && e.target.closest('.drop')) return; // a própria zona já tratou
+  if(!dragHasFiles(e)){ hideVeil(); return; }
+  e.preventDefault(); e.stopPropagation();
+  hideVeil();
   routeFiles([...e.dataTransfer.files]);
-});
+}, true);
+/* Última linha de defesa: nunca deixar o navegador navegar para o arquivo */
+document.addEventListener('dragover', e=>e.preventDefault());
+document.addEventListener('drop', e=>e.preventDefault());
 document.addEventListener('paste', e=>{
   const fs=[...(e.clipboardData?.files||[])];
   if(fs.length){ e.preventDefault(); routeFiles(fs); }

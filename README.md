@@ -8,6 +8,7 @@ Ferramentas PDF sem limites, sem cadastro e 100% privadas — todo o processamen
 - 🗂️ **Organizar PDF** — reordene, gire, duplique e exclua páginas; misture vários PDFs (cada arquivo com sua cor); insira páginas em branco
 - 🗜️ **Comprimir PDF** — 3 níveis de compressão
 - ✍️ **Assinar PDF** — desenhe, digite ou envie a imagem da assinatura e posicione em qualquer página
+- 🪄 **Corrigir PDF** — conserta notas/boletos com símbolos estranhos no lugar do texto (codificação quebrada, ex.: PDFs do "Microsoft Print to PDF" com fonte Wingdings). As áreas corrompidas são apagadas e redesenhadas com o texto correto, mantendo uma camada de texto invisível para copiar/pesquisar. Para páginas escaneadas (sem texto), usa OCR (tesseract.js) no navegador.
 
 ## Tecnologia
 
@@ -15,6 +16,7 @@ Site 100% estático: um único `index.html` + bibliotecas locais em `vendor/`:
 
 - [pdf-lib](https://pdf-lib.js.org/) — criação e edição de PDFs
 - [PDF.js](https://mozilla.github.io/pdf.js/) — renderização de miniaturas e páginas
+- [tesseract.js](https://tesseract.projectnaptha.com/) — OCR local (usado pelo "Corrigir PDF" apenas em páginas escaneadas)
 
 Não há backend, banco de dados nem build — basta servir os arquivos.
 

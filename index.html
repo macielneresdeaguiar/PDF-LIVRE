@@ -131,6 +131,20 @@ nav button.active{color:#fff;background:var(--accent)}
 .result .sizes b{color:var(--txt)}
 /* ---------- Sign ---------- */
 .ico.sign{background:rgba(245,185,84,.14);color:var(--amber)}
+.ico.fix{background:rgba(232,109,255,.14);color:#e86dff}
+/* ---------- Fix (Corrigir) ---------- */
+.fixgrid{display:flex;flex-direction:column;gap:16px;align-items:center}
+.fixitem{width:min(720px,100%);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;gap:16px;align-items:flex-start}
+.fixitem img{width:120px;height:auto;border-radius:6px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.45);flex-shrink:0}
+.fixitem .finfo{flex:1;min-width:0}
+.fixitem .finfo .ftitle{font-weight:700;font-size:15px;margin-bottom:6px}
+.fixitem .finfo .ftext{color:var(--txt2);font-size:13px;line-height:1.5;max-height:120px;overflow:auto;white-space:pre-wrap;word-break:break-word;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.fixitem .finfo .fok{color:var(--green);font-size:13px;font-weight:700;margin-bottom:6px}
+.fixnote{background:rgba(232,109,255,.08);border:1px solid rgba(232,109,255,.35);color:#e9c6ff;border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.55;margin-bottom:18px}
+.fixnote b{color:#f3d9ff}
+.ws-bar select{background:var(--card2);color:var(--txt);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13.5px;font-family:inherit}
+.ws-bar label.hint{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.ws-bar input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
 .spages{display:flex;flex-direction:column;gap:22px;align-items:center}
 .spage{position:relative;width:min(760px,100%);border-radius:6px;box-shadow:0 4px 22px rgba(0,0,0,.5)}
 .spage canvas.pgcv{display:block;width:100%;height:auto;background:#fff;border-radius:6px}
@@ -199,6 +213,7 @@ footer b{color:var(--green)}
       <button id="nav-merge" onclick="go('merge')">Juntar</button>
       <button id="nav-organize" onclick="go('organize')">Organizar</button>
       <button id="nav-compress" onclick="go('compress')">Comprimir</button>
+      <button id="nav-fix" onclick="go('fix')">Corrigir</button>
     </nav>
     <div class="badge-free">✓ Sem limites · 100% privado</div>
   </div>
@@ -236,6 +251,11 @@ footer b{color:var(--green)}
       <div class="ico sign">✍️</div>
       <h3>Assinar PDF</h3>
       <p>Desenhe, digite ou envie sua assinatura e posicione onde quiser, em quantas páginas precisar.</p>
+    </div>
+    <div class="tcard" onclick="go('fix')">
+      <div class="ico fix">🪄</div>
+      <h3>Corrigir PDF</h3>
+      <p>Nota ou boleto com texto/codificação estranha? Recrie o texto com OCR direto no navegador.</p>
     </div>
   </div>
 </section>
@@ -363,6 +383,38 @@ footer b{color:var(--green)}
   </div>
 </section>
 
+<!-- ============ FIX / CORRIGIR ============ -->
+<section class="view" id="view-fix">
+  <div class="tool-head">
+    <h2>🪄 Corrigir PDF</h2>
+    <p>Conserta notas e boletos com símbolos estranhos no lugar do texto (codificação quebrada). As áreas corrompidas são apagadas e redesenhadas com o texto correto — tudo no seu navegador, sem enviar nada.</p>
+  </div>
+  <div class="drop" id="fix-drop">
+    <div class="big">🪄</div>
+    <h3>Arraste seu PDF aqui</h3>
+    <p>ou solte em qualquer lugar da página · dá para colar com Ctrl+V</p>
+    <button class="btn btn-pick">Selecionar arquivo</button>
+  </div>
+  <div class="workspace" id="fix-ws">
+    <div class="fixnote" id="fix-warn" style="display:none">⚠️ <b>Codificação estranha detectada</b> — encontrei caracteres corrompidos no texto deste PDF. A correção abaixo resolve isso.</div>
+    <div class="ws-bar">
+      <label class="hint">Qualidade:
+        <select id="fix-dpi">
+          <option value="150">Normal (150 dpi)</option>
+          <option value="200" selected>Alta (200 dpi)</option>
+          <option value="300">Máxima (300 dpi)</option>
+        </select>
+      </label>
+      <label class="hint"><input type="checkbox" id="fix-ocr" checked> Texto copiável (selecionar/copiar)</label>
+      <div class="spacer"></div>
+      <span class="hint" id="fix-status"></span>
+      <button class="btn ghost sm" onclick="fixReset()">↺ Recomeçar</button>
+      <button class="btn green" id="fix-go" onclick="doFix()">Corrigir PDF ↓</button>
+    </div>
+    <div class="fixgrid" id="fix-grid"></div>
+  </div>
+</section>
+
 <!-- Modal criar assinatura -->
 <div id="sigmodal">
   <div class="smbox">
@@ -432,6 +484,7 @@ footer b{color:var(--green)}
 
 <script src="vendor/pdf-lib.min.js"></script>
 <script src="vendor/pdf.min.js"></script>
+<script src="vendor/tesseract/tesseract.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
 const { PDFDocument, degrees } = PDFLib;
@@ -511,6 +564,7 @@ function routeFiles(fs){
   else if(v==='organize') orgLoadFiles(fs);
   else if(v==='compress') compLoad(fs[0]);
   else if(v==='sign') signLoad(fs[0]);
+  else if(v==='fix') fixLoad(fs[0]);
   else if(fs.length>1){ go('merge'); addMergeFiles(fs); toast('Vários arquivos: abri a ferramenta Juntar. Use o menu se quiser outra.'); }
   else { go('organize'); orgLoadFiles(fs); toast('Abri a ferramenta Organizar. Use o menu se quiser outra.'); }
 }
@@ -1213,6 +1267,305 @@ async function doSign(){
     console.error(e); toast('Erro ao assinar: '+e.message, true);
   }finally{ overlay(false); }
 }
+
+/* ================= FIX / CORRIGIR ================= */
+let fixFile = null;        // {name, bytes, numPages}
+let fixPages = [];         // {imgURL, text, ok}
+let fixWorker = null;
+
+/* Mapa reverso da corrupção clássica "Wingdings / Print to PDF" (Microsoft).
+   Nesses PDFs, o texto vira símbolos (fonte Wingdings) e a camada de texto
+   guarda caracteres da área privada U+F0XX. O byte XX é o código do caractere
+   original. Este mapa (validado em DANFE/boletos brasileiros) reverte isso. */
+const FIX_REV = {
+  0x20:' ',0x24:'$',0x28:'(',0x29:')',0x2B:'+',0x2C:',',0x2D:'-',0x2E:'.',0x2F:'/',
+  0x30:'0',0x31:'1',0x32:'2',0x33:'3',0x34:'4',0x35:'5',0x36:'6',0x37:'7',0x38:'8',0x39:'9',
+  0x3A:':',0x3D:'=',
+  0x41:'A',0x42:'B',0x43:'C',0x44:'D',0x45:'E',0x46:'F',0x47:'G',0x48:'H',0x49:'I',0x4A:'J',0x4B:'K',0x4C:'L',0x4D:'M',0x4E:'N',0x4F:'O',0x50:'P',0x51:'Q',0x52:'R',0x53:'S',0x54:'T',
+  0x56:'Z',
+  0xFB:'U',0xFC:'V',0xFD:'W',0xFE:'X',0xFF:'Y',
+  0x82:'Ç',0x83:'É',0xC7:'Ã',0xC8:'Õ',0xE2:'Á',0xE5:'Í',0xE9:'Ó',
+  0xB7:'ª',0xBC:'º',
+  0x5D:'a',0x5E:'b',0x5F:'c',0x60:'d',0x61:'e',0x62:'f',0x63:'g',0x64:'h',0x65:'i',0x66:'j',0x67:'k',0x68:'l',0x69:'m',0x6A:'n',0x6B:'o',
+  0x7D:'p',0x7E:'q',0x7B:'r',0x7C:'s',
+  0x96:'t',0x97:'u',0x98:'v',0x99:'w',0x9A:'x',0x9B:'y',0x9C:'z',
+  0x87:'á',0x89:'â',0x8B:'ã',0x8D:'ç',0x8E:'é',0x90:'ê',0x92:'í',0x9F:'ó'
+};
+
+function fixDecodeStr(s){
+  let out='', changed=false;
+  for(const ch of s){
+    const c = ch.codePointAt(0);
+    if(c>=0xF000 && c<=0xF0FF){
+      const m = FIX_REV[c-0xF000];
+      if(m!==undefined){ out += m; changed=true; } else out += ch;
+    } else out += ch;
+  }
+  return {text:out, changed};
+}
+
+async function getFixWorker(){
+  if(fixWorker) return fixWorker;
+  fixWorker = await Tesseract.createWorker('por+eng', 1, {
+    workerPath: 'vendor/tesseract/worker.min.js',
+    corePath: 'vendor/tesseract/tesseract-core-simd.wasm.js',
+    langPath: 'vendor/tesseract/',
+    gzip: false
+  });
+  return fixWorker;
+}
+
+/* detecta caracteres corrompidos (área privada do Unicode) no texto do PDF */
+async function detectGarbled(bytes){
+  try{
+    const d = await loadPdfJs(bytes);
+    const max = Math.min(d.numPages, 3);
+    for(let p=1;p<=max;p++){
+      const page = await d.getPage(p);
+      const tc = await page.getTextContent();
+      for(const it of tc.items){
+        const s = it.str || '';
+        for(const ch of s){
+          const c = ch.codePointAt(0);
+          if(c>=0xE000 && c<=0xF8FF){ d.destroy(); return true; }
+        }
+      }
+    }
+    d.destroy();
+  }catch(e){ /* ignora */ }
+  return false;
+}
+
+async function fixLoad(file){
+  fixReset();
+  overlay(true,'Lendo PDF…');
+  try{
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const d = await loadPdfJs(bytes);
+    fixFile = { name:file.name, bytes, numPages:d.numPages };
+    d.destroy();
+    $('#fix-drop').style.display = 'none';
+    $('#fix-ws').classList.add('on');
+    $('#fix-status').textContent = fixFile.numPages+' página'+(fixFile.numPages>1?'s':'');
+    // miniaturas em baixa resolução para pré-visualizar
+    for(let i=1;i<=fixFile.numPages;i++){
+      const dd = await loadPdfJs(bytes);
+      const c = await renderPage(dd, i, 120);
+      fixPages[i-1] = { imgURL:c.toDataURL('image/jpeg',.7), text:'', ok:false };
+      dd.destroy();
+    }
+    renderFixGrid();
+    const garbled = await detectGarbled(bytes);
+    if(garbled){ const w=$('#fix-warn'); if(w) w.style.display='block'; }
+  }catch(e){
+    toast('Não consegui ler esse PDF: '+e.message, true);
+  }finally{ overlay(false); }
+}
+
+function fixReset(){
+  fixFile = null; fixPages = [];
+  $('#fix-drop').style.display='';
+  $('#fix-ws').classList.remove('on');
+  $('#fix-grid').innerHTML='';
+  $('#fix-status').textContent='';
+  const w=$('#fix-warn'); if(w) w.style.display='none';
+}
+
+function renderFixGrid(){
+  const g=$('#fix-grid'); g.innerHTML='';
+  fixPages.forEach((p,i)=>{
+    const el=document.createElement('div');
+    el.className='fixitem';
+    const excerpt = (p.text||'').replace(/\s+/g,' ').trim().slice(0,400);
+    el.innerHTML = `
+      <img src="${p.imgURL}" alt="página ${i+1}">
+      <div class="finfo">
+        <div class="ftitle">Página ${i+1}</div>
+        ${p.ok ? '<div class="fok">✅ Texto corrigido</div>' : '<div class="ftitle" style="color:var(--txt2)">Aguardando correção…</div>'}
+        ${excerpt ? `<div class="ftext">${escapeHtml(excerpt)}</div>` : ''}
+      </div>`;
+    g.appendChild(el);
+  });
+}
+
+function escapeHtml(s){ return s.replace(/[&<>"]/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
+
+function sanitizeWinAnsi(s){
+  let out='';
+  for(const ch of s){
+    const c = ch.codePointAt(0);
+    if(c>=0x20 && c<=0xFF) out += ch;
+    else if(c===0x2013 || c===0x2014) out += '-';
+    else if(c===0x2018 || c===0x2019 || c===0x201C || c===0x201D) out += "'";
+    else if(c===0x2022) out += '-';
+    else out += ' ';
+  }
+  return out.trim();
+}
+
+function setFixStatus(s){ const el=$('#fix-status'); if(el) el.textContent=s; }
+
+async function doFix(){
+  if(!fixFile) return;
+  const dpi = +$('#fix-dpi').value || 200;
+  const wantText = $('#fix-ocr').checked;
+  overlay(true,'Corrigindo PDF…','Recuperando texto e redesenho das áreas corrompidas.');
+  try{
+    const scale = dpi/72;
+    const out = await PDFDocument.create();
+    const font = await out.embedFont(PDFLib.StandardFonts.Helvetica);
+    let d = await loadPdfJs(fixFile.bytes);
+    for(let i=1;i<=d.numPages;i++){
+      prog((i-1)/d.numPages);
+      setFixStatus('Página '+i+' de '+d.numPages);
+      const page = await d.getPage(i);
+      const vp1 = page.getViewport({scale:1});
+      const vp = page.getViewport({scale});
+      const c = document.createElement('canvas');
+      c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
+      await page.render({canvasContext:ctx, viewport:vp}).promise;
+
+      const tc = await page.getTextContent();
+      const items = (tc && tc.items) || [];
+      let text = '';
+      const textLayer = [];   // {txt, x, y, size} em pontos do PDF (origem embaixo)
+
+      // agrupa itens em linhas (mesma baseline) para reconstruir palavras/frases
+      const lines = [];
+      for(const it of items){
+        const tr = it.transform;
+        if(!tr || Math.abs(tr[1])>0.01 || Math.abs(tr[2])>0.01) continue; // só texto reto
+        const y = tr[5];
+        let line = lines.find(l => Math.abs(l.y-y) < (it.height||10)*0.4);
+        if(!line){ line = {y, items:[]}; lines.push(line); }
+        line.items.push(it);
+      }
+      for(const l of lines) l.items.sort((a,b)=>a.transform[4]-b.transform[4]);
+      lines.sort((a,b)=>b.y-a.y); // leitura de cima para baixo
+
+      // reconstrói as palavras de cada linha. Nos itens corrompidos (PUA) os
+      // espaços do MEIO da string são espúrios (a corrupção quebrou a palavra);
+      // um espaço REAL aparece como espaço no FINAL do item, como item só-espaço,
+      // ou como um vão grande entre itens vizinhos.
+      for(const l of lines){
+        const hMax = Math.max(...l.items.map(it=>it.height||10));
+        const tokens = [];
+        for(const it of l.items){
+          const dec = fixDecodeStr(it.str||'');
+          const tr = it.transform;
+          if(dec.changed){
+            const letters = dec.text.replace(/\s+/g,'');
+            tokens.push({
+              text: letters, x0: tr[4], xEnd: tr[4]+(it.width||0),
+              dirty: true, sep: /\s$/.test(dec.text)
+            });
+          } else {
+            tokens.push({
+              text: dec.text, x0: tr[4], xEnd: tr[4]+(it.width||0),
+              dirty: false, sep: /\s$/.test(dec.text)
+            });
+          }
+        }
+
+        const words = [];
+        let cur = null;
+        for(const t of tokens){
+          if(!t.text){
+            if(cur){ words.push(cur); cur = null; }
+            continue;
+          }
+          if(!cur){
+            cur = {text:t.text, x0:t.x0, xEnd:t.xEnd, h:Math.max(4,t.xEnd>t.x0?(t.xEnd-t.x0):8), dirty:t.dirty, ended:t.sep};
+            continue;
+          }
+          const gap = t.x0 - cur.xEnd;
+          const thresh = Math.max(cur.h, (t.xEnd>t.x0?(t.xEnd-t.x0):8))*0.5;
+          if(cur.ended || gap > thresh){
+            words.push(cur);
+            cur = {text:t.text, x0:t.x0, xEnd:t.xEnd, h:Math.max(4,t.xEnd>t.x0?(t.xEnd-t.x0):8), dirty:t.dirty, ended:t.sep};
+          } else {
+            cur.text += t.text;
+            cur.xEnd = t.xEnd;
+            cur.dirty = cur.dirty || t.dirty;
+            cur.ended = t.sep;
+          }
+        }
+        if(cur) words.push(cur);
+
+        const lineText = words.map(w=>w.text).join(' ');
+        if(!lineText) continue;
+        text += lineText + '\n';
+        textLayer.push({txt:lineText, x:l.items[0].transform[4], y:l.y, size:hMax});
+
+        // redesenha cada palavra corrompida (apaga os símbolos e pinta o texto certo)
+        for(const w of words){
+          if(!w.dirty) continue;
+          const xMin = w.x0*scale;
+          const xMax = w.xEnd*scale;
+          const yBase = l.y;
+          const fs = Math.max(2, hMax*scale);
+          const baseY = (vp1.height - yBase)*scale;
+          const wid = Math.max(1, xMax-xMin);
+          ctx.save();
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(xMin-2*scale, baseY-fs*0.95, wid+4*scale, fs*1.22);
+          ctx.fillStyle = '#000';
+          ctx.textBaseline = 'alphabetic';
+          let fontPx = fs*0.9;
+          ctx.font = 'bold '+fontPx+'px Arial, sans-serif';
+          const mw = ctx.measureText(w.text).width;
+          if(mw > wid*1.05 && mw>0){ fontPx *= (wid*1.05)/mw; ctx.font = 'bold '+fontPx+'px Arial, sans-serif'; }
+          ctx.fillText(w.text, xMin, baseY);
+          ctx.restore();
+        }
+      }
+
+      // se a página não tem texto algum (escaneada) e o usuário quer texto, usa OCR
+      if(wantText && items.length===0){
+        setFixStatus('Página '+i+' de '+d.numPages+' — OCR (escaneada)…');
+        const w = await getFixWorker();
+        const { data } = await w.recognize(c);
+        for(const word of (data.words||[])){
+          const clean = sanitizeWinAnsi(word.text);
+          if(!clean) continue;
+          const b = word.bbox; if(!b) continue;
+          textLayer.push({txt:clean, x:b.x0/scale, y:vp1.height - b.y1/scale, size:Math.max(2,(b.y1-b.y0)/scale)});
+        }
+        text = data.text || text;
+      }
+
+      const imgURL = c.toDataURL('image/jpeg', .9);
+      const imgBytes = Uint8Array.from(atob(imgURL.split(',')[1]), ch=>ch.charCodeAt(0));
+      let img;
+      try{ img = await out.embedJpg(imgBytes); }
+      catch(e){ img = await out.embedPng(imgBytes); }
+      const pg = out.addPage([vp1.width, vp1.height]);
+      pg.drawImage(img, {x:0, y:0, width:vp1.width, height:vp1.height});
+
+      if(wantText){
+        for(const tl of textLayer){
+          const clean = sanitizeWinAnsi(tl.txt);
+          if(!clean) continue;
+          try{ pg.drawText(clean, {x:tl.x, y:tl.y, size:tl.size, font, opacity:0}); }catch(_){}
+        }
+      }
+
+      fixPages[i-1] = { imgURL, text:text.trim(), ok:true };
+      renderFixGrid();
+    }
+    prog(1);
+    d.destroy();
+    setFixStatus('Salvando…');
+    const bytes = await out.save({useObjectStreams:false});
+    download(bytes, fixFile.name.replace(/\.pdf$/i,'')+'_corrigido.pdf');
+    toast('✅ PDF corrigido com sucesso!');
+    if(fixWorker){ try{ await fixWorker.terminate(); }catch(_){} fixWorker=null; }
+  }catch(e){
+    console.error(e); toast('Erro ao corrigir: '+e.message, true);
+  }finally{ overlay(false); setFixStatus(''); }
+}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3991fc0e96ecabf',t:'MTc4OTE1NTQxNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>

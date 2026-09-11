@@ -74,6 +74,7 @@ nav button.active{color:#fff;background:var(--accent)}
 .mitem{display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 16px;cursor:grab}
 .mitem.dragging{opacity:.35}
 .mitem .thumb{width:56px;height:74px;border-radius:6px;background:#fff;object-fit:contain;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.mitem img,.pcard img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-drag:none;user-drag:none}
 .mitem .meta{flex:1;min-width:0}
 .mitem .meta .name{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mitem .meta .sub{color:var(--txt2);font-size:13px;margin-top:3px}
@@ -515,14 +516,19 @@ function routeFiles(fs){
 }
 /* Detecta se o arrasto carrega ARQUIVOS (em vez do arrasto interno de
    reordenação). Funciona no Chrome (types = Array) e no Firefox/Safari
-   (types = DOMStringList). */
+   (types = DOMStringList). Arrastos internos de reordenação são marcados
+   com o tipo 'application/x-pdf-livre' e são ignorados aqui. */
 function dragHasFiles(e){
   if(!e.dataTransfer || !e.dataTransfer.types) return false;
   const types = e.dataTransfer.types;
-  if(Array.isArray(types)) return types.indexOf('Files') !== -1;
-  if(types && typeof types.indexOf === 'function') return types.indexOf('Files') !== -1; // DOMStringList
-  for(let i=0;i<types.length;i++){ if(types[i]==='Files') return true; }
-  return false;
+  const has = t => {
+    if(Array.isArray(types)) return types.indexOf(t) !== -1;
+    if(types && typeof types.indexOf === 'function') return types.indexOf(t) !== -1; // DOMStringList
+    for(let i=0;i<types.length;i++){ if(types[i]===t) return true; }
+    return false;
+  };
+  if(has('application/x-pdf-livre')) return false; // reordenação interna
+  return has('Files');
 }
 let dragDepth = 0;
 function hideVeil(){ dragDepth=0; const v=$('#dropveil'); if(v) v.classList.remove('on'); }
@@ -619,7 +625,7 @@ function renderMergeList(){
     el.className='mitem'; el.draggable=true; el.dataset.idx=idx;
     el.innerHTML = `
       <span class="grip">⠿</span>
-      <img class="thumb" src="${mf.thumbURL}" alt="">
+      <img class="thumb" src="${mf.thumbURL}" alt="" draggable="false">
       <div class="meta">
         <div class="name">${mf.name}</div>
         <div class="sub">${mf.pages} página${mf.pages>1?'s':''} · ${fmtSize(mf.size)}</div>
@@ -629,7 +635,7 @@ function renderMergeList(){
         <button class="iconbtn" title="Mover para baixo" onclick="mergeMove(${idx},1)">↓</button>
         <button class="iconbtn danger" title="Remover" onclick="mergeRemove(${idx})">✕</button>
       </div>`;
-    el.addEventListener('dragstart', e=>{ el.classList.add('dragging'); e.dataTransfer.setData('text/plain', idx); });
+    el.addEventListener('dragstart', e=>{ el.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('application/x-pdf-livre','reorder'); e.dataTransfer.setData('text/plain', idx); });
     el.addEventListener('dragend', ()=>el.classList.remove('dragging'));
     el.addEventListener('dragover', e=>e.preventDefault());
     el.addEventListener('drop', e=>{
@@ -795,7 +801,7 @@ function renderOrgGrid(){
       <button class="addbetween" title="Inserir página em branco aqui" onclick="event.stopPropagation();orgAddBlank(${idx})">＋</button>
       <div class="pv">${pg.blank
         ? '<div class="blankpage">EM BRANCO</div>'
-        : `<img src="${pg.thumbURL}" style="transform:rotate(${pg.rot}deg)${rotSwap?';max-width:150px;max-height:100px':''}" alt="">`}
+        : `<img src="${pg.thumbURL}" draggable="false" style="transform:rotate(${pg.rot}deg)${rotSwap?';max-width:150px;max-height:100px':''}" alt="">`}
       </div>
       <div class="pnum">${multiDoc?`<span class="dot" style="background:${color}"></span>`:''}${idx+1} · ${pg.blank?'em branco':pg.label}</div>
       <div class="ops">
@@ -803,7 +809,7 @@ function renderOrgGrid(){
         <button class="iconbtn" title="Duplicar página" onclick="event.stopPropagation();orgDup(${idx})">⧉</button>
         <button class="iconbtn danger" title="Excluir página" onclick="event.stopPropagation();orgDelete(${idx})">🗑</button>
       </div>`;
-    el.addEventListener('dragstart', e=>{ orgDragFrom=idx; el.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+    el.addEventListener('dragstart', e=>{ orgDragFrom=idx; el.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('application/x-pdf-livre','reorder'); e.dataTransfer.setData('text/plain', String(idx)); });
     el.addEventListener('dragend', ()=>{ el.classList.remove('dragging'); clearDropMarks(); });
     el.addEventListener('dragover', e=>{
       e.preventDefault();
@@ -1208,5 +1214,5 @@ async function doSign(){
   }finally{ overlay(false); }
 }
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3991fc0e96ecabf',t:'MTc4OTE1NTQxNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

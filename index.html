@@ -145,43 +145,6 @@ nav button.active{color:#fff;background:var(--accent)}
 .ws-bar select{background:var(--card2);color:var(--txt);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13.5px;font-family:inherit}
 .ws-bar label.hint{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
 .ws-bar input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
-.spages{display:flex;flex-direction:column;gap:22px;align-items:center}
-.spage{position:relative;width:min(760px,100%);border-radius:6px;box-shadow:0 4px 22px rgba(0,0,0,.5)}
-.spage canvas.pgcv{display:block;width:100%;height:auto;background:#fff;border-radius:6px}
-.spage .plabel{position:absolute;top:-2px;left:-2px;transform:translateY(-100%);font-size:12px;color:var(--txt2);padding-bottom:4px}
-.spage.placing{cursor:crosshair;outline:2px dashed var(--accent);outline-offset:2px}
-.sigbox{position:absolute;cursor:move;border:2px dashed transparent;touch-action:none}
-.sigbox img{width:100%;height:100%;display:block;pointer-events:none}
-.sigbox:hover,.sigbox.sel{border-color:var(--accent)}
-.sigbox .rs{position:absolute;right:-9px;bottom:-9px;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:nwse-resize;display:none;border:2px solid #fff}
-.sigbox .del{position:absolute;right:-11px;top:-11px;width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;font-size:12px;font-weight:800;display:none;place-items:center}
-.sigbox:hover .rs,.sigbox.sel .rs{display:block}
-.sigbox:hover .del,.sigbox.sel .del{display:grid}
-#placing-banner{display:none;position:sticky;top:70px;z-index:40;background:rgba(108,92,231,.95);color:#fff;font-weight:700;font-size:14.5px;text-align:center;padding:11px 16px;border-radius:12px;margin-bottom:16px}
-#placing-banner.on{display:block}
-/* ---------- Signature modal ---------- */
-#sigmodal{display:none;position:fixed;inset:0;background:rgba(10,12,17,.85);z-index:250;place-items:center;backdrop-filter:blur(4px);padding:18px}
-#sigmodal.on{display:grid}
-.smbox{background:var(--bg2);border:1px solid var(--border);border-radius:18px;width:min(620px,100%);padding:24px;box-shadow:var(--shadow)}
-.smbox h3{font-size:19px;margin-bottom:16px}
-.smtabs{display:flex;gap:8px;margin-bottom:18px}
-.smtabs button{flex:1;background:var(--card);color:var(--txt2);border:1px solid var(--border);padding:10px;border-radius:10px;font-weight:700;font-size:14px}
-.smtabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.smpanel{display:none}
-.smpanel.active{display:block}
-#sig-draw{width:100%;height:210px;background:#fff;border-radius:10px;cursor:crosshair;touch-action:none;display:block}
-.smrow{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
-.smrow .spacer{flex:1}
-.penopts{display:flex;gap:8px}
-.pen{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer}
-.pen.sel{border-color:#fff;outline:2px solid var(--accent)}
-.pen.black{background:#111}.pen.blue{background:#1a3fb5}
-#sig-type-input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--txt);font-size:16px;padding:12px 14px;border-radius:10px;outline:none}
-#sig-type-input:focus{border-color:var(--accent)}
-.fontopts{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
-.fopt{flex:1;min-width:150px;background:#fff;color:#111;border:2px solid transparent;border-radius:10px;padding:14px 10px;font-size:24px;text-align:center;cursor:pointer;white-space:nowrap;overflow:hidden}
-.fopt.sel{border-color:var(--accent)}
-#sig-img-preview{max-width:100%;max-height:170px;border-radius:10px;background:#fff;display:none;margin-top:12px}
 /* ---------- Drop veil (soltar em qualquer lugar) ---------- */
 #dropveil{display:none;position:fixed;inset:0;z-index:400;background:rgba(108,92,231,.16);backdrop-filter:blur(2px);pointer-events:none;place-items:center}
 #dropveil.on{display:grid}
@@ -203,6 +166,7 @@ footer{border-top:1px solid var(--border);padding:26px 24px;text-align:center;co
 footer b{color:var(--green)}
 @media(max-width:640px){ nav{display:none} .badge-free{display:none} .pgrid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))} .pcard .pv{height:120px} }
 </style>
+<link rel="stylesheet" href="assets/signatures.css">
 </head>
 <body>
 
@@ -213,6 +177,7 @@ footer b{color:var(--green)}
       <button id="nav-merge" onclick="go('merge')">Juntar</button>
       <button id="nav-organize" onclick="go('organize')">Organizar</button>
       <button id="nav-compress" onclick="go('compress')">Comprimir</button>
+      <button id="nav-sign" onclick="go('sign')">Assinar</button>
       <button id="nav-fix" onclick="go('fix')">Corrigir</button>
     </nav>
     <div class="badge-free">✓ Sem limites · 100% privado</div>
@@ -223,7 +188,7 @@ footer b{color:var(--green)}
 <section class="view active" id="view-home">
   <div class="hero">
     <h1>Todas as ferramentas PDF.<br><span>Sem limites. Sem cadastro. Sem espera.</span></h1>
-    <p>Junte, organize e comprima seus PDFs quantas vezes quiser. Tudo é processado <b>no seu navegador</b> — seus arquivos nunca saem do seu computador.</p>
+    <p>Junte, organize, comprima, corrija e assine seus PDFs quantas vezes quiser. Tudo é processado <b>no seu navegador</b> — seus arquivos nunca saem do seu computador.</p>
     <div class="pills">
       <div class="pill"><b>∞</b> arquivos ilimitados</div>
       <div class="pill"><b>∞</b> tamanho ilimitado</div>
@@ -250,12 +215,12 @@ footer b{color:var(--green)}
     <div class="tcard" onclick="go('sign')">
       <div class="ico sign">✍️</div>
       <h3>Assinar PDF</h3>
-      <p>Desenhe, digite ou envie sua assinatura e posicione onde quiser, em quantas páginas precisar.</p>
+      <p>Assine com várias pessoas no mesmo PDF. Crie pelo nome ou importe uma foto sem fundo e salve até 10 assinaturas.</p>
     </div>
     <div class="tcard" onclick="go('fix')">
       <div class="ico fix">🪄</div>
       <h3>Corrigir PDF</h3>
-      <p>Nota ou boleto com texto/codificação estranha? Recrie o texto com OCR direto no navegador.</p>
+      <p>Recupere notas e boletos com texto corrompido. Corrija símbolos e deixe o PDF copiável, direto no navegador.</p>
     </div>
   </div>
 </section>
@@ -360,27 +325,52 @@ footer b{color:var(--green)}
 <section class="view" id="view-sign">
   <div class="tool-head">
     <h2>✍️ Assinar PDF</h2>
-    <p>Crie sua assinatura (desenhando, digitando ou enviando imagem), clique em "Posicionar" e depois clique na página onde ela deve ficar. Arraste para mover, use o círculo roxo para redimensionar.</p>
+    <p>Várias pessoas, um só PDF. Crie assinaturas pelo nome, desenhe ou fotografe a assinatura no papel. Salve até 10 e reutilize sempre que precisar.</p>
+    <div class="sign-steps"><span><b>1</b> Abra seu PDF</span><span>→</span><span><b>2</b> Selecione as pessoas</span><span>→</span><span><b>3</b> Posicione e baixe</span></div>
   </div>
+
+  <div class="sign-library" id="sign-library">
+    <div class="sign-lib-head">
+      <h3>Minhas assinaturas <span class="sign-capacity" id="sig-library-count">0 / 10</span></h3>
+      <div class="sign-lib-actions">
+        <button class="btn sm" id="sig-new-btn" onclick="openSigModal()">＋ Nova assinatura</button>
+        <button class="btn ghost sm" id="sig-export-btn" onclick="exportSignatureLibrary()" disabled title="Guarde um backup para não perder suas assinaturas">Exportar backup</button>
+        <button class="btn ghost sm" onclick="pickSignatureBackup()">Importar backup</button>
+      </div>
+    </div>
+    <div class="sign-library-grid" id="sig-library-grid"><div class="sign-library-empty">Carregando suas assinaturas…</div></div>
+    <div class="sign-library-select" id="sig-library-select" hidden>
+      <span class="hint" id="sig-selected-count">Nenhuma assinatura selecionada</span>
+      <button class="sign-link" onclick="selectAllSignatures()">Selecionar todas</button>
+      <button class="sign-link" onclick="clearSignatureSelection()">Desmarcar</button>
+    </div>
+    <p class="sign-library-note" id="sig-storage-note">Salvas apenas neste navegador, sem envio a servidores. Exporte um backup para usar em outro dispositivo.</p>
+  </div>
+
   <div class="drop" id="sign-drop">
     <div class="big">📥</div>
-    <h3>Arraste seu PDF aqui</h3>
-    <p>ou</p>
-    <button class="btn btn-pick">Selecionar arquivo</button>
+    <h3>Abra o PDF que vai receber as assinaturas</h3>
+    <p>Solte em qualquer lugar da página ou cole com Ctrl+V</p>
+    <button class="btn btn-pick">Selecionar PDF</button>
   </div>
   <div class="workspace" id="sign-ws">
-    <div class="ws-bar">
-      <button class="btn sm" onclick="openSigModal()">✍️ Criar assinatura</button>
-      <button class="btn ghost sm" id="sig-place-btn" onclick="startPlacing()" disabled>📍 Posicionar assinatura</button>
-      <img id="sig-preview" style="height:40px;background:#fff;border-radius:8px;padding:3px 8px;display:none" alt="assinatura atual">
-      <button class="btn ghost sm" onclick="signReset()">↺ Recomeçar</button>
+    <div class="sign-doc-info">
+      <span class="file-icon">📄</span>
+      <div class="sign-doc-meta"><strong id="sign-file-name"></strong><span id="sign-file-meta"></span></div>
+      <button class="btn ghost sm" onclick="signReset()">Trocar PDF</button>
+    </div>
+    <div class="ws-bar sign-toolbar">
+      <button class="btn sm" id="sig-place-btn" onclick="startPlacing()" disabled>📍 Posicionar selecionadas</button>
+      <label><input type="checkbox" id="sig-repeat"> Repetir em todas as páginas</label>
+      <button class="btn ghost sm" id="sig-clear-btn" onclick="clearSignPlacements()" disabled>Limpar posições</button>
       <div class="spacer"></div>
-      <span class="hint" id="sign-count"></span>
       <button class="btn green" id="sign-go" onclick="doSign()" disabled>Baixar PDF assinado ↓</button>
     </div>
-    <div id="placing-banner">Clique na página, no local onde a assinatura deve ficar &nbsp;·&nbsp; <u style="cursor:pointer" onclick="cancelPlacing()">cancelar</u></div>
+    <span id="sign-count" aria-live="polite">Selecione uma ou mais assinaturas na biblioteca acima.</span>
+    <div id="placing-banner" role="status"><span id="placing-message"></span><button onclick="cancelPlacing()">Cancelar · Esc</button></div>
     <div class="spages" id="sign-pages"></div>
   </div>
+  <p class="sign-notice">🔒 As assinaturas e os PDFs ficam no seu dispositivo. Use somente assinaturas próprias ou autorizadas. Esta ferramenta insere assinaturas visuais; não cria certificado digital nem envia convites para assinatura. Alterar um PDF já certificado pode invalidar sua assinatura digital.</p>
 </section>
 
 <!-- ============ FIX / CORRIGIR ============ -->
@@ -415,44 +405,73 @@ footer b{color:var(--green)}
   </div>
 </section>
 
-<!-- Modal criar assinatura -->
-<div id="sigmodal">
+<!-- Criador de assinatura — tudo local -->
+<div id="sigmodal" role="dialog" aria-modal="true" aria-labelledby="sig-modal-title">
   <div class="smbox">
-    <h3>Criar assinatura</h3>
-    <div class="smtabs">
-      <button id="smtab-draw" class="active" onclick="sigTab('draw')">✏️ Desenhar</button>
-      <button id="smtab-type" onclick="sigTab('type')">⌨️ Digitar</button>
-      <button id="smtab-img" onclick="sigTab('img')">🖼️ Imagem</button>
+    <div class="sm-title"><h3 id="sig-modal-title">Nova assinatura</h3><button class="iconbtn" onclick="closeSigModal()" aria-label="Fechar">✕</button></div>
+    <p class="sm-description">Crie uma assinatura e deixe salva para os próximos documentos.</p>
+    <label class="sig-field">Nome da pessoa
+      <input id="sig-person-name" type="text" maxlength="80" placeholder="Ex.: Vanderson ou Evandro Moreira" autocomplete="off" oninput="renderFontOpts()">
+    </label>
+    <div class="smtabs" role="tablist" aria-label="Modo de criar assinatura">
+      <button id="smtab-type" class="active" role="tab" aria-selected="true" aria-controls="smpanel-type" onclick="sigTab('type')">⌨️ Pelo nome</button>
+      <button id="smtab-draw" role="tab" aria-selected="false" aria-controls="smpanel-draw" onclick="sigTab('draw')">✏️ Desenhar</button>
+      <button id="smtab-img" role="tab" aria-selected="false" aria-controls="smpanel-img" onclick="sigTab('img')">📷 Foto do papel</button>
     </div>
-    <div class="smpanel active" id="smpanel-draw">
-      <canvas id="sig-draw" width="1140" height="420"></canvas>
-      <div class="smrow">
-        <span class="hint">Cor da caneta:</span>
-        <div class="penopts">
-          <div class="pen black sel" onclick="setPen('#111111',this)"></div>
-          <div class="pen blue" onclick="setPen('#1a3fb5',this)"></div>
+    <div class="smpanel active" id="smpanel-type" role="tabpanel" aria-labelledby="smtab-type">
+      <label class="sig-field">Texto da assinatura <small>Se quiser usar só o nome acima, deixe este campo vazio.</small>
+        <input id="sig-type-input" type="text" maxlength="80" placeholder="Mesmo nome da pessoa" oninput="renderFontOpts()" autocomplete="off">
+      </label>
+      <div class="fontopts" id="fontopts" aria-label="Escolha o estilo da assinatura"></div>
+    </div>
+    <div class="smpanel" id="smpanel-draw" role="tabpanel" aria-labelledby="smtab-draw">
+      <canvas id="sig-draw" width="1300" height="420" aria-label="Desenhe sua assinatura com o mouse ou com o dedo"></canvas>
+      <div class="smrow"><span class="hint">Assine com o mouse ou com o dedo.</span><div class="spacer"></div><button class="btn ghost sm" onclick="undoSigDraw()">Desfazer traço</button><button class="btn ghost sm" onclick="clearDraw()">Limpar</button></div>
+    </div>
+    <div class="smpanel" id="smpanel-img" role="tabpanel" aria-labelledby="smtab-img">
+      <div class="sig-photo-actions">
+        <button class="btn ghost sm" onclick="pickSigImage()">🖼 Escolher foto</button>
+        <button class="btn ghost sm" onclick="pickSigImage(true)">📷 Usar câmera</button>
+      </div>
+      <p class="photo-instructions" style="margin-top:10px">Assine em papel branco com caneta escura. Fotografe de frente, com boa luz. Aceita JPG, PNG e WebP; você também pode soltar ou colar a foto aqui.</p>
+      <div id="sig-photo-editor">
+        <p class="photo-instructions"><b>1.</b> Arraste sobre a foto para selecionar só a assinatura. Isso evita capturar outras marcas do papel.</p>
+        <div class="photo-stage-outer"><div class="photo-stage" id="sig-photo-stage"><canvas id="sig-photo-source"></canvas><div id="sig-photo-crop"></div></div></div>
+        <div class="photo-controls"><button class="btn ghost sm" onclick="rotateSigPhoto()">⟳ Girar foto</button><button class="btn ghost sm" onclick="resetSigPhotoCrop()">Usar foto inteira</button><label><input type="checkbox" id="sig-remove-bg" checked onchange="scheduleSigPhotoProcessing()"> Remover fundo</label></div>
+        <div class="photo-controls">
+          <label>Limpeza <input type="range" id="sig-bg-strength" min="0" max="100" value="50" oninput="scheduleSigPhotoProcessing()"><output id="sig-bg-value">50</output></label>
+          <label>Tinta <select id="sig-photo-ink" onchange="scheduleSigPhotoProcessing()"><option value="original">Cor original</option><option value="black">Preta</option><option value="blue">Azul</option></select></label>
+          <label><input type="checkbox" id="sig-clean-specks" checked onchange="scheduleSigPhotoProcessing()"> Limpar pontinhos</label>
         </div>
-        <div class="spacer"></div>
-        <button class="btn ghost sm" onclick="clearDraw()">Limpar</button>
+        <p class="photo-preview-label"><b>2.</b> Resultado sem fundo — o quadriculado indica transparência.</p>
+        <div class="sig-photo-result checker"><img id="sig-img-preview" alt="Prévia da assinatura com fundo transparente"></div>
+        <span id="sig-photo-status" aria-live="polite"></span>
       </div>
     </div>
-    <div class="smpanel" id="smpanel-type">
-      <input id="sig-type-input" type="text" placeholder="Digite seu nome completo" oninput="renderFontOpts()">
-      <div class="fontopts" id="fontopts"></div>
+    <div class="smrow" id="sig-pen-row">
+      <span class="hint">Cor da tinta:</span>
+      <div class="sig-pen-options"><button class="pen black sel" onclick="setPen('#111111',this)" aria-label="Tinta preta" aria-pressed="true"></button><button class="pen blue" onclick="setPen('#1a3fb5',this)" aria-label="Tinta azul" aria-pressed="false"></button></div>
     </div>
-    <div class="smpanel" id="smpanel-img">
-      <button class="btn ghost" onclick="pickSigImage()">Escolher imagem (PNG/JPG)</button>
-      <p class="hint" style="margin-top:10px">Dica: uma foto da assinatura em papel branco funciona bem — o fundo branco é removido automaticamente.</p>
-      <img id="sig-img-preview" alt="">
-    </div>
-    <div class="smrow" style="margin-top:20px">
-      <div class="spacer"></div>
+    <div class="smrow sig-modal-footer">
+      <span class="hint">Até 10 assinaturas. Armazenamento apenas neste navegador.</span>
       <button class="btn ghost" onclick="closeSigModal()">Cancelar</button>
-      <button class="btn" onclick="saveSignature()">Usar esta assinatura</button>
+      <button class="btn" id="sig-save-btn" onclick="saveSignature()">Salvar assinatura</button>
     </div>
   </div>
 </div>
-<input type="file" id="fi-img" accept="image/png,image/jpeg" hidden>
+<input type="file" id="fi-img" accept="image/png,image/jpeg,image/webp" hidden>
+<input type="file" id="fi-sig-camera" accept="image/*" capture="environment" hidden>
+<input type="file" id="fi-sig-backup" accept=".json,application/json" hidden>
+
+<div id="sig-manage-modal" role="dialog" aria-modal="true" aria-labelledby="sig-manage-title">
+  <div class="smbox">
+    <div class="sm-title"><h3 id="sig-manage-title">Renomear assinatura</h3><button class="iconbtn" onclick="closeSigManage()" aria-label="Fechar">✕</button></div>
+    <div class="sig-manage-preview checker"><img id="sig-manage-image" alt="Assinatura selecionada"></div>
+    <label class="sig-field" id="sig-manage-name-field">Nome da pessoa<input id="sig-manage-name" type="text" maxlength="80" autocomplete="off"></label>
+    <p id="sig-manage-note"></p>
+    <div class="smrow"><div class="spacer"></div><button class="btn ghost sm" onclick="closeSigManage()">Cancelar</button><button class="btn sm" id="sig-manage-confirm" onclick="confirmSigManage()">Salvar nome</button></div>
+  </div>
+</div>
 
 <!-- Modal de download -->
 <div id="dlmodal">
@@ -492,6 +511,7 @@ const { PDFDocument, degrees } = PDFLib;
 /* ================= util ================= */
 const $ = s => document.querySelector(s);
 function go(v){
+  if(v!=='sign' && typeof cancelPlacing==='function') cancelPlacing();
   document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
   $('#view-'+v).classList.add('active');
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
@@ -557,6 +577,15 @@ function setupDrop(el, onFiles, multi){
 /* ---- soltar/colar PDFs em qualquer lugar da página ---- */
 function isPdfFile(f){ return f.type==='application/pdf' || f.name.toLowerCase().endsWith('.pdf'); }
 function routeFiles(fs){
+  const photo = fs.find(f=>/^image\/(png|jpeg|webp)$/.test(f.type) || /\.(png|jpe?g|webp)$/i.test(f.name));
+  const sigOpen = $('#sigmodal').classList.contains('on');
+  const inSign = $('#view-sign').classList.contains('active');
+  if(photo && (sigOpen || (inSign && !fs.some(isPdfFile)))){
+    if(!sigOpen && !openSigModal('img')) return;
+    if(sigOpen) sigTab('img');
+    loadSigPhoto(photo); return;
+  }
+  if(sigOpen){ toast('Feche o criador de assinatura antes de trocar o PDF.', true); return; }
   fs = fs.filter(isPdfFile);
   if(!fs.length){ toast('Nenhum PDF encontrado no que você soltou/colou.', true); return; }
   const v = document.querySelector('.view.active').id.replace('view-','');
@@ -595,7 +624,10 @@ function hideVeil(){ dragDepth=0; const v=$('#dropveil'); if(v) v.classList.remo
 window.addEventListener('dragenter', e=>{
   if(!dragHasFiles(e)) return;
   e.preventDefault(); dragDepth++;
-  const v=$('#dropveil'); if(v) v.classList.add('on');
+  const v=$('#dropveil'); if(v){
+    v.querySelector('.in').textContent = $('#sigmodal').classList.contains('on') ? '📷 Solte a foto da assinatura aqui' : '📥 Solte os PDFs aqui';
+    v.classList.add('on');
+  }
 }, true);
 window.addEventListener('dragover', e=>{
   if(!dragHasFiles(e)) return;
@@ -1013,261 +1045,6 @@ async function doCompress(){
   }finally{ overlay(false); }
 }
 
-/* ================= SIGN ================= */
-let signFile = null;            // {name, bytes}
-let signPageDims = [];          // [{w,h}] pontos PDF por página
-let signPlacements = [];        // {id, page, xr, yr, wr} frações relativas à página
-let curSig = null;              // {dataURL, w, h} assinatura atual (PNG transparente)
-let placing = false, sigSeq = 0, selPlacement = null;
-
-setupDrop($('#sign-drop'), fs=>signLoad(fs[0]), false);
-
-async function signLoad(f){
-  overlay(true,'Renderizando páginas…','Isso pode levar alguns segundos em arquivos grandes.');
-  try{
-    const bytes = new Uint8Array(await f.arrayBuffer());
-    let d;
-    try{ d = await loadPdfJs(bytes); }
-    catch(e){ toast('Este PDF parece protegido ou corrompido.', true); return; }
-    signFile = {name:f.name, bytes};
-    signPageDims = []; signPlacements = [];
-    const cont = $('#sign-pages'); cont.innerHTML='';
-    for(let p=1;p<=d.numPages;p++){
-      prog(p/d.numPages);
-      const page = await d.getPage(p);
-      const vp1 = page.getViewport({scale:1});
-      signPageDims.push({w:vp1.width, h:vp1.height});
-      const scale = Math.min(2, 1520/vp1.width);
-      const vp = page.getViewport({scale});
-      const c = document.createElement('canvas');
-      c.className='pgcv';
-      c.width=Math.ceil(vp.width); c.height=Math.ceil(vp.height);
-      await page.render({canvasContext:c.getContext('2d'), viewport:vp}).promise;
-      const wrap = document.createElement('div');
-      wrap.className='spage'; wrap.dataset.page=p-1;
-      wrap.innerHTML = `<div class="plabel">Página ${p} de ${d.numPages}</div>`;
-      wrap.appendChild(c);
-      wrap.addEventListener('click', e=>pageClick(e, wrap));
-      cont.appendChild(wrap);
-    }
-    d.destroy();
-    $('#sign-drop').style.display='none';
-    $('#sign-ws').classList.add('on');
-    updateSignBar();
-    if(!curSig) openSigModal();
-  } finally { overlay(false); }
-}
-function signReset(){
-  signFile=null; signPlacements=[]; cancelPlacing();
-  $('#sign-pages').innerHTML='';
-  $('#sign-drop').style.display=''; $('#sign-ws').classList.remove('on');
-}
-function updateSignBar(){
-  $('#sig-place-btn').disabled = !curSig || !signFile;
-  $('#sign-go').disabled = signPlacements.length===0;
-  $('#sign-count').textContent = signPlacements.length ? signPlacements.length+' assinatura'+(signPlacements.length>1?'s':'')+' posicionada'+(signPlacements.length>1?'s':'') : '';
-  const pv=$('#sig-preview');
-  if(curSig){ pv.src=curSig.dataURL; pv.style.display=''; } else pv.style.display='none';
-}
-function startPlacing(){
-  if(!curSig) return openSigModal();
-  placing=true;
-  $('#placing-banner').classList.add('on');
-  document.querySelectorAll('.spage').forEach(s=>s.classList.add('placing'));
-}
-function cancelPlacing(){
-  placing=false;
-  $('#placing-banner').classList.remove('on');
-  document.querySelectorAll('.spage').forEach(s=>s.classList.remove('placing'));
-}
-function pageClick(e, wrap){
-  if(!placing || !curSig) return;
-  if(e.target.closest('.sigbox')) return;
-  const r = wrap.getBoundingClientRect();
-  const xr=(e.clientX-r.left)/r.width, yr=(e.clientY-r.top)/r.height;
-  const wr = .28; // largura inicial: 28% da página
-  signPlacements.push({id:++sigSeq, page:+wrap.dataset.page, xr:Math.max(0,xr-wr/2), yr:Math.max(0,yr-(wr*curSig.h/curSig.w)/2), wr});
-  cancelPlacing();
-  renderPlacements();
-  toast('Assinatura posicionada! Arraste para ajustar, ou posicione mais cópias.');
-}
-function renderPlacements(){
-  document.querySelectorAll('.sigbox').forEach(b=>b.remove());
-  signPlacements.forEach(pl=>{
-    const wrap = document.querySelector(`.spage[data-page="${pl.page}"]`);
-    if(!wrap) return;
-    const box=document.createElement('div');
-    box.className='sigbox'; box.dataset.id=pl.id;
-    const hr = pl.wr * (curSig.h/curSig.w) * (wrap.clientWidth/wrap.clientHeight);
-    box.style.cssText=`left:${pl.xr*100}%;top:${pl.yr*100}%;width:${pl.wr*100}%;height:${hr*100}%`;
-    box.innerHTML=`<img src="${curSig.dataURL}" alt=""><div class="rs"></div><div class="del">✕</div>`;
-    box.querySelector('.del').addEventListener('click', ev=>{
-      ev.stopPropagation();
-      signPlacements = signPlacements.filter(p=>p.id!==pl.id);
-      renderPlacements();
-    });
-    // drag para mover
-    box.addEventListener('pointerdown', ev=>{
-      if(ev.target.classList.contains('rs')||ev.target.classList.contains('del')) return;
-      ev.preventDefault(); box.setPointerCapture(ev.pointerId);
-      selPlacement=pl.id;
-      document.querySelectorAll('.sigbox').forEach(b=>b.classList.toggle('sel',b.dataset.id==pl.id));
-      const r=wrap.getBoundingClientRect();
-      const sx=ev.clientX, sy=ev.clientY, ox=pl.xr, oy=pl.yr;
-      const mv=e2=>{ pl.xr=Math.min(1-pl.wr,Math.max(0,ox+(e2.clientX-sx)/r.width));
-                     pl.yr=Math.min(1-hr, Math.max(0,oy+(e2.clientY-sy)/r.height));
-                     box.style.left=pl.xr*100+'%'; box.style.top=pl.yr*100+'%'; };
-      const up=()=>{ box.removeEventListener('pointermove',mv); box.removeEventListener('pointerup',up); };
-      box.addEventListener('pointermove',mv); box.addEventListener('pointerup',up);
-    });
-    // resize
-    box.querySelector('.rs').addEventListener('pointerdown', ev=>{
-      ev.preventDefault(); ev.stopPropagation();
-      box.setPointerCapture(ev.pointerId);
-      const r=wrap.getBoundingClientRect();
-      const sx=ev.clientX, ow=pl.wr;
-      const mv=e2=>{ pl.wr=Math.min(.9,Math.max(.06,ow+(e2.clientX-sx)/r.width));
-                     const nh=pl.wr*(curSig.h/curSig.w)*(wrap.clientWidth/wrap.clientHeight);
-                     box.style.width=pl.wr*100+'%'; box.style.height=nh*100+'%'; };
-      const up=()=>{ box.removeEventListener('pointermove',mv); box.removeEventListener('pointerup',up); };
-      box.addEventListener('pointermove',mv); box.addEventListener('pointerup',up);
-    });
-    wrap.appendChild(box);
-  });
-  updateSignBar();
-}
-
-/* --- modal de criação --- */
-let penColor='#111111', drawing=false, drewSomething=false, sigTabCur='draw', sigImgData=null;
-const dcv = $('#sig-draw'), dctx = dcv.getContext('2d');
-dctx.lineWidth=5; dctx.lineCap='round'; dctx.lineJoin='round';
-function openSigModal(){ $('#sigmodal').classList.add('on'); renderFontOpts(); }
-function closeSigModal(){ $('#sigmodal').classList.remove('on'); }
-function sigTab(t){
-  sigTabCur=t;
-  ['draw','type','img'].forEach(x=>{
-    $('#smtab-'+x).classList.toggle('active',x===t);
-    $('#smpanel-'+x).classList.toggle('active',x===t);
-  });
-}
-function setPen(c,el){ penColor=c; document.querySelectorAll('.pen').forEach(p=>p.classList.remove('sel')); el.classList.add('sel'); }
-function clearDraw(){ dctx.clearRect(0,0,dcv.width,dcv.height); drewSomething=false; }
-function dpos(e){ const r=dcv.getBoundingClientRect(); return [(e.clientX-r.left)*dcv.width/r.width,(e.clientY-r.top)*dcv.height/r.height]; }
-dcv.addEventListener('pointerdown',e=>{ drawing=true; drewSomething=true; dcv.setPointerCapture(e.pointerId); dctx.strokeStyle=penColor; dctx.beginPath(); dctx.moveTo(...dpos(e)); });
-dcv.addEventListener('pointermove',e=>{ if(drawing){ dctx.lineTo(...dpos(e)); dctx.stroke(); } });
-dcv.addEventListener('pointerup',()=>drawing=false);
-
-const SIGFONTS=[
-  {css:"'Brush Script MT','Segoe Script',cursive"},
-  {css:"'Segoe Script','Comic Sans MS',cursive"},
-  {css:"'Lucida Handwriting','Apple Chancery',cursive"},
-  {css:"'Comic Sans MS','Chalkboard SE',cursive"}
-];
-let selFont=0;
-function renderFontOpts(){
-  const name=$('#sig-type-input').value||'Sua Assinatura';
-  // reduz a fonte da prévia conforme o nome cresce, para nunca cortar
-  const fs=Math.max(13, Math.min(24, Math.round(340/Math.max(name.length,1))));
-  const box=$('#fontopts'); box.innerHTML='';
-  SIGFONTS.forEach((f,i)=>{
-    const d=document.createElement('div');
-    d.className='fopt'+(i===selFont?' sel':'');
-    d.style.fontFamily=f.css; d.style.fontSize=fs+'px'; d.textContent=name;
-    d.onclick=()=>{selFont=i; renderFontOpts();};
-    box.appendChild(d);
-  });
-}
-function pickSigImage(){
-  const inp=$('#fi-img'); inp.value='';
-  inp.onchange=()=>{
-    const f=inp.files[0]; if(!f) return;
-    const rd=new FileReader();
-    rd.onload=()=>{ sigImgData=rd.result; const pv=$('#sig-img-preview'); pv.src=sigImgData; pv.style.display='block'; };
-    rd.readAsDataURL(f);
-  };
-  inp.click();
-}
-function trimCanvas(c){
-  const ctx=c.getContext('2d'), d=ctx.getImageData(0,0,c.width,c.height).data;
-  let minX=c.width,minY=c.height,maxX=0,maxY=0,found=false;
-  for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){
-    if(d[(y*c.width+x)*4+3]>10){ found=true; if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; }
-  }
-  if(!found) return null;
-  const pad=8, w=maxX-minX+1+pad*2, h=maxY-minY+1+pad*2;
-  const out=document.createElement('canvas'); out.width=w; out.height=h;
-  out.getContext('2d').drawImage(c,minX-pad,minY-pad,w,h,0,0,w,h);
-  return out;
-}
-async function saveSignature(){
-  let canvas=null;
-  if(sigTabCur==='draw'){
-    if(!drewSomething){ toast('Desenhe sua assinatura primeiro.', true); return; }
-    canvas=trimCanvas(dcv);
-  } else if(sigTabCur==='type'){
-    const name=$('#sig-type-input').value.trim();
-    if(!name){ toast('Digite seu nome primeiro.', true); return; }
-    const font='140px '+SIGFONTS[selFont].css;
-    // mede o texto primeiro para o canvas nunca cortar nomes longos
-    const meas=document.createElement('canvas').getContext('2d');
-    meas.font=font;
-    const m=meas.measureText(name);
-    const tw=Math.ceil(m.width);
-    const c=document.createElement('canvas');
-    c.width=tw+120; c.height=420; // margens generosas p/ ascendentes e caudas da caligrafia
-    const ctx=c.getContext('2d');
-    ctx.fillStyle='#111'; ctx.font=font;
-    ctx.textBaseline='middle'; ctx.fillText(name,60,210);
-    canvas=trimCanvas(c);
-  } else {
-    if(!sigImgData){ toast('Escolha uma imagem primeiro.', true); return; }
-    const img=new Image();
-    await new Promise(r=>{ img.onload=r; img.src=sigImgData; });
-    const c=document.createElement('canvas'); c.width=img.width; c.height=img.height;
-    const ctx=c.getContext('2d'); ctx.drawImage(img,0,0);
-    // remove fundo claro -> transparente
-    const id=ctx.getImageData(0,0,c.width,c.height), d=id.data;
-    for(let i=0;i<d.length;i+=4){
-      const lum=(d[i]+d[i+1]+d[i+2])/3;
-      if(lum>200) d[i+3]=0;
-      else if(lum>150) d[i+3]=Math.round(255*(200-lum)/50);
-    }
-    ctx.putImageData(id,0,0);
-    canvas=trimCanvas(c);
-  }
-  if(!canvas){ toast('Não foi possível capturar a assinatura.', true); return; }
-  curSig={dataURL:canvas.toDataURL('image/png'), w:canvas.width, h:canvas.height};
-  closeSigModal();
-  renderPlacements();
-  updateSignBar();
-  toast('✅ Assinatura criada! Clique em "Posicionar assinatura".');
-  if(signFile) startPlacing();
-}
-
-async function doSign(){
-  if(!signFile || !signPlacements.length) return;
-  overlay(true,'Aplicando assinaturas…');
-  try{
-    const doc = await PDFDocument.load(signFile.bytes,{ignoreEncryption:true});
-    const pngBytes = Uint8Array.from(atob(curSig.dataURL.split(',')[1]), c=>c.charCodeAt(0));
-    const png = await doc.embedPng(pngBytes);
-    const pages = doc.getPages();
-    signPlacements.forEach((pl,i)=>{
-      prog(i/signPlacements.length);
-      const pg = pages[pl.page];
-      const {width:pw, height:ph} = pg.getSize();
-      const w = pl.wr*pw, h = w*(curSig.h/curSig.w);
-      pg.drawImage(png,{ x:pl.xr*pw, y:ph-(pl.yr*ph)-h, width:w, height:h });
-    });
-    prog(1);
-    const bytes = await doc.save({useObjectStreams:true});
-    download(bytes, signFile.name.replace(/\.pdf$/i,'')+'_assinado.pdf');
-    toast('✅ PDF assinado com sucesso!');
-  }catch(e){
-    console.error(e); toast('Erro ao assinar: '+e.message, true);
-  }finally{ overlay(false); }
-}
-
 /* ================= FIX / CORRIGIR ================= */
 let fixFile = null;        // {name, bytes, numPages}
 let fixPages = [];         // {imgURL, text, ok}
@@ -1567,5 +1344,6 @@ async function doFix(){
   }finally{ overlay(false); setFixStatus(''); }
 }
 </script>
+<script src="assets/signatures.js"></script>
 </body>
 </html>

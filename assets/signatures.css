@@ -1,0 +1,120 @@
+/* PDF Livre — assinaturas locais e biblioteca pessoal. */
+@font-face{font-family:SigAllura;src:url('../vendor/fonts/Allura-Regular.ttf') format('truetype');font-display:swap}
+@font-face{font-family:SigGreatVibes;src:url('../vendor/fonts/GreatVibes-Regular.ttf') format('truetype');font-display:swap}
+@font-face{font-family:SigSacramento;src:url('../vendor/fonts/Sacramento-Regular.ttf') format('truetype');font-display:swap}
+@font-face{font-family:SigCaveat;src:url('../vendor/fonts/Caveat[wght].ttf') format('truetype');font-weight:400 700;font-display:swap}
+#view-sign .tool-head p{max-width:880px;line-height:1.6}
+.sign-steps{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:18px 0 24px;font-size:13px;color:var(--txt2)}
+.sign-steps span{display:flex;gap:8px;align-items:center}
+.sign-steps b{width:25px;height:25px;display:grid;place-items:center;background:var(--card2);border:1px solid var(--border);border-radius:50%;color:var(--accent2)}
+.sign-library{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:24px}
+.sign-lib-head{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.sign-lib-head h3{font-size:18px;display:flex;gap:10px;align-items:center}
+.sign-capacity{font-size:12px;font-weight:700;background:var(--card2);border:1px solid var(--border);color:var(--txt2);border-radius:99px;padding:5px 10px}
+.sign-lib-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto}
+.sign-library-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.sign-library-empty{grid-column:1/-1;border:1px dashed var(--border);border-radius:12px;padding:24px;text-align:center;color:var(--txt2);font-size:14px;line-height:1.7}
+.sign-library-empty b{color:var(--txt)}
+.sign-entry{background:var(--card);border:2px solid transparent;border-radius:12px;overflow:hidden;transition:border-color .15s}
+.sign-entry.checked{border-color:var(--accent)}
+.sign-entry .signature-check{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:700;cursor:pointer;padding:12px 12px 10px;overflow:hidden}
+.sign-entry input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);flex-shrink:0}
+.sign-entry .signature-check span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.checker{background-color:#fff;background-image:linear-gradient(45deg,#e9edf3 25%,transparent 25%),linear-gradient(-45deg,#e9edf3 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e9edf3 75%),linear-gradient(-45deg,transparent 75%,#e9edf3 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
+.signature-card-preview{width:calc(100% - 24px);height:88px;margin:0 12px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:10px;overflow:hidden}
+.signature-card-preview img{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none}
+.sign-entry-footer{display:flex;gap:5px;align-items:center;padding:9px 12px}
+.sign-entry-footer .signature-kind{margin-right:auto;font-size:11.5px;color:var(--txt2)}
+.sign-entry-footer .iconbtn{width:28px;height:28px;font-size:13px}
+.sign-library-note{font-size:12px;line-height:1.6;color:var(--txt2);margin-top:14px}
+.sign-library-note.warn{color:var(--amber)}
+.sign-library-select{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.sign-library-select .hint{margin-right:auto}
+.sign-link{background:none;color:var(--accent2);font-size:12.5px;font-weight:600;text-decoration:underline;text-underline-offset:3px;padding:5px 0}
+.sign-doc-info{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.sign-doc-info .file-icon{font-size:28px}
+.sign-doc-meta{flex:1;min-width:0}
+.sign-doc-meta strong{display:block;font-size:14px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.sign-doc-meta span{display:block;margin-top:3px;color:var(--txt2);font-size:12px}
+.sign-toolbar{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;gap:10px}
+.sign-toolbar label{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--txt2);cursor:pointer;line-height:1.4}
+.sign-toolbar input{accent-color:var(--accent);width:16px;height:16px;flex-shrink:0}
+#sign-count{font-size:12px;margin-bottom:18px;display:block;text-align:right;color:var(--txt2)}
+#sign-count b{color:var(--amber)}
+.sign-notice{color:var(--txt2);font-size:12px;line-height:1.6;margin:16px 0 24px}
+.spages{display:flex;flex-direction:column;gap:38px;align-items:center;padding-top:16px}
+.spage{position:relative;width:min(760px,100%);box-shadow:0 4px 22px rgba(0,0,0,.5);isolation:isolate}
+.spage canvas.pgcv{display:block;width:100%;height:auto;background:#fff}
+.spage .plabel{position:absolute;top:0;left:0;transform:translateY(-100%);font-size:12px;color:var(--txt2);padding-bottom:7px}
+.spage.placing{cursor:crosshair;outline:2px dashed var(--accent);outline-offset:3px;touch-action:manipulation}
+.sigbox{position:absolute;cursor:move;touch-action:none;outline:2px dashed transparent;user-select:none;z-index:2}
+.sigbox img{width:100%;height:100%;display:block;pointer-events:none;-webkit-user-drag:none;object-fit:fill}
+.sigbox:hover,.sigbox.sel{outline-color:var(--accent);z-index:3}
+.sigbox .sig-person{display:none;position:absolute;left:0;bottom:100%;font-size:10.5px;font-weight:600;white-space:nowrap;background:var(--accent);color:#fff;padding:3px 6px;border-radius:4px 4px 0 0;max-width:210px;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.sigbox.sel .sig-person,.sigbox:hover .sig-person{display:block}
+.sigbox .rs{position:absolute;right:-8px;bottom:-8px;width:17px;height:17px;border-radius:50%;background:var(--accent);cursor:nwse-resize;display:none;border:2px solid #fff;padding:0}
+.sigbox .del{position:absolute;right:-10px;top:-10px;width:21px;height:21px;border-radius:50%;background:var(--red);color:#fff;font-size:11px;font-weight:800;display:none;place-items:center;padding:0}
+.sigbox:hover .rs,.sigbox.sel .rs{display:block}
+.sigbox:hover .del,.sigbox.sel .del{display:grid}
+#placing-banner{display:none;position:sticky;top:72px;z-index:40;background:rgba(108,92,231,.96);color:#fff;font-weight:600;font-size:14px;line-height:1.5;text-align:center;padding:12px 16px;border-radius:12px;margin-bottom:20px;box-shadow:var(--shadow)}
+#placing-banner.on{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap}
+#placing-banner button{background:rgba(0,0,0,.18);color:#fff;font-size:12px;font-weight:600;border-radius:6px;padding:6px 10px}
+#sigmodal,#sig-manage-modal{display:none;position:fixed;inset:0;background:rgba(10,12,17,.88);z-index:250;place-items:center;backdrop-filter:blur(4px);padding:18px}
+#sigmodal.on,#sig-manage-modal.on{display:grid}
+.smbox{background:var(--bg2);border:1px solid var(--border);border-radius:18px;width:min(700px,100%);padding:24px;box-shadow:var(--shadow);max-height:calc(100dvh - 36px);overflow:auto;overscroll-behavior:contain}
+.sm-title{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.sm-title h3{font-size:21px;flex:1}
+.sm-description{color:var(--txt2);font-size:13px;line-height:1.6;margin-bottom:18px}
+.sig-field{display:block;font-size:13px;font-weight:600;margin-bottom:16px}
+.sig-field input{display:block;width:100%;background:var(--card);border:1px solid var(--border);color:var(--txt);font-family:inherit;font-size:15px;padding:11px 13px;border-radius:9px;outline:none;margin-top:7px}
+.sig-field input:focus{border-color:var(--accent)}
+.sig-field small{display:block;font-size:12px;font-weight:400;color:var(--txt2);margin-top:6px}
+.smtabs{display:flex;gap:7px;margin-bottom:16px}
+.smtabs button{flex:1;background:var(--card);color:var(--txt2);border:1px solid var(--border);padding:10px 6px;border-radius:9px;font-weight:700;font-size:13px;line-height:1.4}
+.smtabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.smpanel{display:none}
+.smpanel.active{display:block}
+#sig-draw{width:100%;height:210px;background:#fff;border-radius:10px;cursor:crosshair;touch-action:none;display:block}
+.smrow{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.smrow .spacer{flex:1}
+.sig-pen-options{display:flex;gap:8px;align-items:center}
+.sig-pen-options .pen{width:27px;height:27px;border-radius:50%;border:2px solid var(--border);padding:0}
+.sig-pen-options .pen.sel{border-color:#fff;outline:2px solid var(--accent)}
+.pen.black{background:#111111}.pen.blue{background:#1a3fb5}
+.fontopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.fopt{background:#fff;color:#111;border:2px solid transparent;border-radius:10px;padding:12px 8px;cursor:pointer;overflow:hidden;min-width:0;text-align:center;display:flex;align-items:center;flex-direction:column;gap:6px}
+.fopt.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.fopt .font-sample{height:61px;line-height:61px;width:100%;white-space:nowrap}
+.fopt small{font-family:'Segoe UI',system-ui,sans-serif;font-size:11px;color:#777}
+.sig-photo-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+#sig-photo-editor{display:none;margin-top:16px}
+.photo-instructions{font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:10px}
+.photo-stage-outer{text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px;overflow:hidden}
+.photo-stage{position:relative;display:inline-block;max-width:100%;overflow:hidden;vertical-align:middle;touch-action:none;cursor:crosshair;user-select:none}
+#sig-photo-source{display:block;max-width:100%;max-height:240px;width:auto;height:auto;-webkit-user-drag:none}
+#sig-photo-crop{position:absolute;border:2px dashed #6c5ce7;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.30);display:none}
+.photo-controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.photo-controls label{display:flex;gap:6px;align-items:center;color:var(--txt2);font-size:12.5px;cursor:pointer}
+.photo-controls input[type=checkbox],.photo-controls input[type=range]{accent-color:var(--accent)}
+.photo-controls select{background:var(--card2);border:1px solid var(--border);color:var(--txt);font-family:inherit;border-radius:7px;font-size:12.5px;padding:6px}
+.photo-controls input[type=range]{width:105px}
+.photo-preview-label{font-size:12px;color:var(--txt2);margin-bottom:7px}
+.sig-photo-result{border:1px solid var(--border);border-radius:10px;min-height:95px;display:flex;align-items:center;justify-content:center;padding:14px;overflow:hidden}
+#sig-img-preview{display:none;max-width:100%;max-height:145px;object-fit:contain}
+#sig-photo-status{display:block;font-size:12px;color:var(--txt2);line-height:1.6;margin-top:8px;min-height:20px}
+#sig-photo-status.error{color:var(--amber)}
+.sig-modal-footer{margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.sig-modal-footer .hint{flex:1;font-size:11.5px;line-height:1.5;max-width:270px}
+#sig-manage-modal .smbox{width:min(440px,100%)}
+.sig-manage-preview{display:flex;justify-content:center;align-items:center;height:95px;padding:14px;border-radius:9px;margin:14px 0}
+.sig-manage-preview img{max-width:100%;max-height:100%}
+#sig-manage-note{font-size:12px;line-height:1.6;color:var(--txt2);margin-bottom:18px}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent2);outline-offset:3px}
+@media(max-width:1000px) and (min-width:641px){.hwrap{flex-wrap:wrap;gap:8px}.hwrap nav{order:3;flex-basis:100%;justify-content:center;margin:0}#placing-banner{top:120px}}
+@media(max-width:640px){.sign-library{padding:16px}.sign-lib-head h3{font-size:16px}.sign-lib-actions{width:100%;margin-left:0}.sign-library-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.sign-entry .signature-check{font-size:12px;padding:10px 8px}.signature-card-preview{height:65px;padding:5px;width:calc(100% - 16px);margin:0 8px}.sign-entry-footer{padding:7px 8px;gap:3px}.sign-entry-footer .signature-kind{display:none}.sign-entry-footer .iconbtn{width:27px;height:27px}.smbox{padding:18px}.smtabs button{font-size:12px}.sm-title h3{font-size:19px}.smtabs{gap:5px}.sig-modal-footer .hint{max-width:none;flex-basis:100%}.sig-modal-footer .btn{flex:1;justify-content:center;font-size:14px;padding:11px 13px}.sign-toolbar .btn.green{width:100%;justify-content:center}.sign-steps{gap:8px;font-size:11.5px}.fontopts{gap:8px}.fopt{padding:8px 4px}.photo-controls{gap:10px}#placing-banner{top:68px;font-size:12px}.spages{gap:34px}}
+@media(prefers-reduced-motion:reduce){.sign-entry{transition:none}}
+
+[hidden]{display:none!important}
+/* Avisos nunca bloqueiam botões (inclusive quando a mensagem quebra no celular). */
+#toast{pointer-events:none;width:max-content;max-width:calc(100vw - 32px);line-height:1.45;text-align:center}
+body.sig-modal-open{overflow:hidden}

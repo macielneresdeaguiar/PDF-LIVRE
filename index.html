@@ -167,6 +167,7 @@ footer b{color:var(--green)}
 @media(max-width:640px){ nav{display:none} .badge-free{display:none} .pgrid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))} .pcard .pv{height:120px} }
 </style>
 <link rel="stylesheet" href="assets/signatures.css">
+<link rel="stylesheet" href="assets/tools.css">
 </head>
 <body>
 
@@ -178,6 +179,8 @@ footer b{color:var(--green)}
       <button id="nav-organize" onclick="go('organize')">Organizar</button>
       <button id="nav-compress" onclick="go('compress')">Comprimir</button>
       <button id="nav-sign" onclick="go('sign')">Assinar</button>
+      <button id="nav-letter" onclick="go('letter')">Carta</button>
+      <button id="nav-delete" onclick="go('delete')">Excluir</button>
       <button id="nav-fix" onclick="go('fix')">Corrigir</button>
     </nav>
     <div class="badge-free">✓ Sem limites · 100% privado</div>
@@ -188,7 +191,7 @@ footer b{color:var(--green)}
 <section class="view active" id="view-home">
   <div class="hero">
     <h1>Todas as ferramentas PDF.<br><span>Sem limites. Sem cadastro. Sem espera.</span></h1>
-    <p>Junte, organize, comprima, corrija e assine seus PDFs quantas vezes quiser. Tudo é processado <b>no seu navegador</b> — seus arquivos nunca saem do seu computador.</p>
+    <p>Junte, organize, assine, exclua páginas e crie suas cartas. Todas as ferramentas PDF em um só lugar. Tudo é processado <b>no seu navegador</b> — seus arquivos nunca saem do seu computador.</p>
     <div class="pills">
       <div class="pill"><b>∞</b> arquivos ilimitados</div>
       <div class="pill"><b>∞</b> tamanho ilimitado</div>
@@ -215,8 +218,10 @@ footer b{color:var(--green)}
     <div class="tcard" onclick="go('sign')">
       <div class="ico sign">✍️</div>
       <h3>Assinar PDF</h3>
-      <p>Assine com várias pessoas no mesmo PDF. Crie pelo nome ou importe uma foto sem fundo e salve até 10 assinaturas.</p>
+      <p>Assine vários PDFs de uma vez e baixe tudo junto. Use várias pessoas e reutilize até 10 assinaturas salvas.</p>
     </div>
+    <div class="tcard" onclick="go('letter')"><div class="ico letter">📝</div><h3>Carta de Explicação</h3><p>Use seus modelos, descreva a nova situação e gere uma carta pronta para revisar e assinar.</p></div>
+    <div class="tcard" onclick="go('delete')"><div class="ico delete">🗑️</div><h3>Excluir páginas</h3><p>Remova uma ou várias páginas, selecionando miniaturas ou informando números e intervalos.</p></div>
     <div class="tcard" onclick="go('fix')">
       <div class="ico fix">🪄</div>
       <h3>Corrigir PDF</h3>
@@ -252,13 +257,13 @@ footer b{color:var(--green)}
 <section class="view" id="view-organize">
   <div class="tool-head">
     <h2>🗂️ Organizar PDF</h2>
-    <p>Arraste as páginas para reordenar. Passe o mouse sobre uma página para girar, excluir ou inserir uma página em branco antes dela.</p>
+    <p>Arraste para reordenar. Cada página mantém a cor do arquivo e seu número original; a posição no PDF final é indicada separadamente.</p>
   </div>
   <div class="drop" id="org-drop">
     <div class="big">📥</div>
-    <h3>Arraste seu PDF aqui</h3>
+    <h3>Arraste um ou vários PDFs aqui</h3>
     <p>ou solte em qualquer lugar da página · dá para colar com Ctrl+V</p>
-    <button class="btn btn-pick">Selecionar arquivo</button>
+    <button class="btn btn-pick">Selecionar arquivos</button>
   </div>
   <div class="workspace" id="org-ws">
     <div class="ws-bar">
@@ -271,6 +276,7 @@ footer b{color:var(--green)}
       <span class="hint" id="org-count"></span>
       <button class="btn green" onclick="doOrganize()">Baixar PDF organizado ↓</button>
     </div>
+    <p class="org-source-help">🎨 <b>Página</b> = número original dentro do arquivo. <b>Posição no PDF</b> = onde ela está agora no documento final. Mover não muda a origem.</p>
     <div class="legend" id="org-legend"></div>
     <div class="pgrid" id="org-grid"></div>
   </div>
@@ -325,8 +331,8 @@ footer b{color:var(--green)}
 <section class="view" id="view-sign">
   <div class="tool-head">
     <h2>✍️ Assinar PDF</h2>
-    <p>Várias pessoas, um só PDF. Crie assinaturas pelo nome, desenhe ou fotografe a assinatura no papel. Salve até 10 e reutilize sempre que precisar.</p>
-    <div class="sign-steps"><span><b>1</b> Abra seu PDF</span><span>→</span><span><b>2</b> Selecione as pessoas</span><span>→</span><span><b>3</b> Posicione e baixe</span></div>
+    <p>Vários arquivos e várias pessoas. Abra todos os PDFs de uma vez, posicione as assinaturas e baixe um único PDF com todas as páginas. Sua biblioteca de até 10 assinaturas continua salva.</p>
+    <div class="sign-steps"><span><b>1</b> Abra seus PDFs</span><span>→</span><span><b>2</b> Selecione as pessoas</span><span>→</span><span><b>3</b> Posicione e baixe</span></div>
   </div>
 
   <div class="sign-library" id="sign-library">
@@ -349,19 +355,22 @@ footer b{color:var(--green)}
 
   <div class="drop" id="sign-drop">
     <div class="big">📥</div>
-    <h3>Abra o PDF que vai receber as assinaturas</h3>
+    <h3>Abra um ou vários PDFs para assinar</h3>
     <p>Solte em qualquer lugar da página ou cole com Ctrl+V</p>
-    <button class="btn btn-pick">Selecionar PDF</button>
+    <button class="btn btn-pick">Selecionar PDFs</button>
   </div>
   <div class="workspace" id="sign-ws">
     <div class="sign-doc-info">
       <span class="file-icon">📄</span>
       <div class="sign-doc-meta"><strong id="sign-file-name"></strong><span id="sign-file-meta"></span></div>
-      <button class="btn ghost sm" onclick="signReset()">Trocar PDF</button>
+      <button class="btn ghost sm" onclick="signPickMore()">＋ Adicionar PDFs</button>
+      <button class="btn ghost sm" onclick="signReset()">Recomeçar lote</button>
     </div>
+    <div class="sign-source-list" id="sign-source-list"></div>
     <div class="ws-bar sign-toolbar">
       <button class="btn sm" id="sig-place-btn" onclick="startPlacing()" disabled>📍 Posicionar selecionadas</button>
-      <label><input type="checkbox" id="sig-repeat"> Repetir em todas as páginas</label>
+      <label><input type="checkbox" id="sig-repeat" onchange="setSignRepeatMode('all')"> Todas as páginas</label>
+      <label><input type="checkbox" id="sig-repeat-last" onchange="setSignRepeatMode('last')"> Última página de cada PDF</label>
       <button class="btn ghost sm" id="sig-clear-btn" onclick="clearSignPlacements()" disabled>Limpar posições</button>
       <div class="spacer"></div>
       <button class="btn green" id="sign-go" onclick="doSign()" disabled>Baixar PDF assinado ↓</button>
@@ -371,6 +380,61 @@ footer b{color:var(--green)}
     <div class="spages" id="sign-pages"></div>
   </div>
   <p class="sign-notice">🔒 As assinaturas e os PDFs ficam no seu dispositivo. Use somente assinaturas próprias ou autorizadas. Esta ferramenta insere assinaturas visuais; não cria certificado digital nem envia convites para assinatura. Alterar um PDF já certificado pode invalidar sua assinatura digital.</p>
+</section>
+
+<!-- ============ CARTA DE EXPLICAÇÃO ============ -->
+<section class="view" id="view-letter">
+  <div class="tool-head"><h2>📝 Carta de Explicação</h2><p>Escolha um dos seus modelos, informe a nota e descreva a nova situação. Revise a carta, baixe em PDF ou envie direto para Assinar.</p></div>
+  <div class="letter-layout">
+    <form class="tool-panel letter-form" id="letter-form">
+      <div class="panel-heading"><span class="step-dot">1</span><h3>Modelo e informações</h3></div>
+      <label class="field">Modelo de referência<select id="letter-model" onchange="letterChooseModel()"><option value="vidraceiro">Compra emergencial · Loja do Vidraceiro</option><option value="qualieng">Serviço emergencial · Qualieng</option><option value="dr">Materiais sob demanda · DR Utilidades</option><option value="djaci">Materiais sob demanda · Djaci</option></select></label>
+      <p class="form-note" id="letter-model-note"></p>
+      <div class="field-pair"><label class="field">Número da nota fiscal<input id="letter-nf" maxlength="40" placeholder="Ex.: 4699" required></label><label class="field">Valor da nota <span class="optional">opcional</span><input id="letter-value" inputmode="decimal" maxlength="30" placeholder="Ex.: 1.600,00"></label></div>
+      <label class="field">Empresa / fornecedor<input id="letter-supplier" maxlength="220" required placeholder="Empresa que emitiu a nota"></label>
+      <label class="field">O que foi comprado ou realizado <span class="optional">opcional</span><textarea id="letter-object" rows="2" maxlength="3000" placeholder="Ex.: substituição de peças do ar-condicionado"></textarea></label>
+      <label class="field">Descreva o que aconteceu ou o que mudou<textarea id="letter-reason" rows="5" maxlength="15000" required placeholder="Explique a nova situação: qual foi o problema, por que a compra ou o serviço foi necessário e o que precisou ser feito."></textarea></label>
+      <div class="letter-helper"><button class="sign-link" type="button" onclick="letterIdentifyFacts()">Identificar NF, empresa e valor na descrição</button><button class="sign-link" type="button" onclick="letterUseExample()">Usar texto do modelo como ponto de partida</button></div>
+      <p class="form-note">O identificador reconhece dados escritos como “NF: 123; Empresa: ...; Valor: R$ 100,00; Motivo: ...”. A redação usa os modelos e a sua descrição, sem inventar fatos ou consultar IA externa.</p>
+      <label class="field">Observação sobre o fornecedor <span class="optional">opcional</span><textarea id="letter-context" rows="2" maxlength="3000" placeholder="Ex.: já atende o condomínio e conhece os equipamentos."></textarea></label>
+      <div class="form-checks"><label><input type="checkbox" id="letter-quotes" checked> Justificar a ausência de três cotações/orçamentos</label><label><input type="checkbox" id="letter-extenso" checked> Incluir valor por extenso</label></div>
+      <details class="letter-fixed" open><summary>Dados fixos e espaço para assinatura</summary>
+        <label class="field">Condomínio / entidade<input id="letter-entity" maxlength="220" required></label>
+        <div class="field-pair"><label class="field">CNPJ <span class="optional">opcional</span><input id="letter-cnpj" maxlength="30" placeholder="00.000.000/0000-00"></label><label class="field">Local<input id="letter-city" maxlength="80" placeholder="Brasília/DF"></label></div>
+        <div class="field-pair"><label class="field">Quem vai assinar<input id="letter-signer" maxlength="100" required></label><label class="field">Cargo<input id="letter-role" maxlength="80" placeholder="Síndico"></label></div>
+        <label class="form-check"><input type="checkbox" id="letter-second" onchange="letterToggleSecondSigner()"> Reservar espaço para uma segunda pessoa assinar</label>
+        <div class="field-pair" id="letter-second-fields" hidden><label class="field">Segunda pessoa<input id="letter-signer2" maxlength="100" placeholder="Ex.: Vanderson"></label><label class="field">Cargo da segunda pessoa<input id="letter-role2" maxlength="80" placeholder="Responsável"></label></div>
+        <div class="form-checks"><label><input type="checkbox" id="letter-date-enabled"> Incluir local e data na carta</label></div>
+        <label class="field" id="letter-date-field" hidden>Data<input type="date" id="letter-date"></label>
+        <p class="form-note" id="letter-prefs-note">Os dados fixos ficam salvos neste navegador. As assinaturas dos PDFs de exemplo não são reutilizadas.</p>
+      </details>
+      <button class="btn" id="letter-generate" type="submit">Gerar carta para revisar →</button>
+    </form>
+    <div class="letter-preview-column">
+      <div class="tool-panel letter-review">
+        <div class="panel-heading"><span class="step-dot">2</span><h3>Revisar e assinar</h3></div>
+        <p class="form-note" id="letter-status" aria-live="polite">Sua carta aparecerá aqui depois de gerar. Você poderá ajustar o texto antes de baixar.</p>
+        <div class="letter-preview-empty" id="letter-empty"><span>📝</span><strong>Seu modelo, a nova situação.</strong><p>Título, texto e identificação no padrão das cartas enviadas, com espaço livre para assinatura.</p></div>
+        <div id="letter-result" hidden>
+          <details class="letter-text-edit"><summary>Editar o texto final da carta</summary><label class="field">Texto da carta<textarea id="letter-body" rows="13" maxlength="30000"></textarea></label><button type="button" class="btn ghost sm" id="letter-apply-edit" onclick="letterApplyEditedBody()" disabled>Atualizar prévia com este texto</button></details>
+          <div id="letter-preview-pages" class="letter-preview-pages"></div>
+        </div>
+        <div class="letter-actions"><button class="btn green" type="button" id="letter-download" onclick="letterDownload()" disabled>Baixar carta em PDF ↓</button><button class="btn ghost" type="button" id="letter-send-sign" onclick="letterSendToSign()" disabled>✍️ Enviar para Assinar</button></div>
+        <p class="form-note">A prévia mostra o PDF que será gerado. Revise números, valores, nomes e justificativa antes de assinar. Se já houver PDFs no Assinar, a carta será acrescentada ao lote.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EXCLUIR PÁGINAS ============ -->
+<section class="view" id="view-delete">
+  <div class="tool-head"><h2>🗑️ Excluir páginas de PDF</h2><p>Marque uma ou mais páginas para remover. Você pode desfazer a seleção antes de baixar; o arquivo original não é alterado.</p></div>
+  <div class="drop" id="delete-drop"><div class="big">📥</div><h3>Abra o PDF do qual quer excluir páginas</h3><p>Selecione um arquivo, solte em qualquer lugar ou cole com Ctrl+V</p><button class="btn btn-pick">Selecionar PDF</button></div>
+  <div class="workspace" id="delete-ws">
+    <div class="sign-doc-info"><span class="file-icon">📄</span><div class="sign-doc-meta"><strong id="delete-file-name"></strong><span id="delete-file-meta"></span></div><button class="btn ghost sm" onclick="deleteReset()">Trocar PDF</button></div>
+    <div class="tool-panel delete-options"><div class="delete-range-row"><label class="field">Selecionar por número<input id="delete-range" maxlength="1000" placeholder="Ex.: 2, 4-6" onkeydown="if(event.key==='Enter'){event.preventDefault();deleteApplyRange()}"></label><button class="btn ghost sm" onclick="deleteApplyRange()">Marcar páginas</button><button class="sign-link" onclick="deleteSelectAll()">Selecionar todas</button><button class="sign-link" onclick="deleteClearSelection()">Desmarcar todas</button></div><p class="form-note">Use números das páginas deste arquivo. Exemplo: “2, 4-6” marca as páginas 2, 4, 5 e 6.</p><div class="delete-summary"><span id="delete-status" aria-live="polite">Nenhuma página selecionada.</span><button class="btn green" id="delete-go" onclick="doDeletePages()" disabled>Excluir selecionadas e baixar ↓</button></div></div>
+    <div class="delete-grid" id="delete-grid"></div>
+  </div>
 </section>
 
 <!-- ============ FIX / CORRIGIR ============ -->
@@ -502,6 +566,7 @@ footer b{color:var(--green)}
 <input type="file" id="fi-single" accept="application/pdf" hidden>
 
 <script src="vendor/pdf-lib.min.js"></script>
+<script src="vendor/fontkit.min.js"></script>
 <script src="vendor/pdf.min.js"></script>
 <script src="vendor/tesseract/tesseract.min.js"></script>
 <script>
@@ -592,7 +657,8 @@ function routeFiles(fs){
   if(v==='merge') addMergeFiles(fs);
   else if(v==='organize') orgLoadFiles(fs);
   else if(v==='compress') compLoad(fs[0]);
-  else if(v==='sign') signLoad(fs[0]);
+  else if(v==='sign') signLoadFiles(fs);
+  else if(v==='delete'){ if(fs.length>1) toast('Excluir páginas aceita um PDF por vez; abri o primeiro arquivo.'); deleteLoad(fs[0]); }
   else if(v==='fix') fixLoad(fs[0]);
   else if(fs.length>1){ go('merge'); addMergeFiles(fs); toast('Vários arquivos: abri a ferramenta Juntar. Use o menu se quiser outra.'); }
   else { go('organize'); orgLoadFiles(fs); toast('Abri a ferramenta Organizar. Use o menu se quiser outra.'); }
@@ -806,30 +872,32 @@ const DOC_COLORS = ['#6c5ce7','#27c58c','#f5b954','#ff6b81','#5ec8f8','#e67ce6',
 setupDrop($('#org-drop'), fs=>orgLoadFiles(fs), true);
 async function orgAddFile(){ const fs=await pickFiles(true); if(fs.length) orgLoadFiles(fs); }
 
-async function orgLoadFiles(files){
-  overlay(true,'Gerando miniaturas…','Isso pode levar alguns segundos em arquivos grandes.');
+let orgLoadQueue=Promise.resolve();
+function orgLoadFiles(files){
+  const selected=[...files].filter(isPdfFile);
+  orgLoadQueue=orgLoadQueue.catch(()=>{}).then(()=>orgLoadBatch(selected));return orgLoadQueue;
+}
+async function orgLoadBatch(files){
+  overlay(true,'Gerando miniaturas…','A cor e o número original acompanham cada página, mesmo depois de mover.');
   try{
     for(const f of files){
-      const bytes = new Uint8Array(await f.arrayBuffer());
       let d;
-      try{ d = await loadPdfJs(bytes); }
-      catch(e){ toast(`"${f.name}" parece protegido ou corrompido — ignorado.`, true); continue; }
-      if(orgPages.length===0) orgOriginalName = f.name.replace(/\.pdf$/i,'');
-      const docId = ++orgDocSeq;
-      const color = DOC_COLORS[(docId-1) % DOC_COLORS.length];
-      orgDocs[docId] = {bytes, name:f.name, color};
-      const short = f.name.length>18 ? f.name.slice(0,15)+'…' : f.name;
-      for(let p=1;p<=d.numPages;p++){
-        prog(p/d.numPages);
-        const c = await renderPage(d, p, 220);
-        orgPages.push({uid:++orgSeq, docId, pageIndex:p-1, rot:0, blank:false,
-          thumbURL:c.toDataURL('image/jpeg',.75), label:short});
-      }
-      d.destroy();
+      try{
+        const bytes=new Uint8Array(await f.arrayBuffer());d=await loadPdfJs(bytes);
+        const docId=orgDocSeq+1,color=DOC_COLORS[(docId-1)%DOC_COLORS.length],pages=[];
+        const short=f.name.length>24?f.name.slice(0,21)+'…':f.name;
+        for(let p=1;p<=d.numPages;p++){
+          const c=await renderPage(d,p,220);
+          pages.push({uid:++orgSeq,docId,pageIndex:p-1,rot:0,blank:false,thumbURL:c.toDataURL('image/jpeg',.75),label:short});prog(p/d.numPages);
+        }
+        if(!orgPages.length)orgOriginalName=f.name.replace(/\.pdf$/i,'');
+        orgDocSeq=docId;orgDocs[docId]={bytes,name:f.name,color,numPages:d.numPages,fileNumber:docId};orgPages.push(...pages);
+      }catch(e){toast('“'+f.name+'” não pôde ser aberto; verifique senha ou corrupção.',true);}
+      finally{if(d)await d.destroy();}
     }
-  } finally { overlay(false); }
-  renderOrgGrid();
+  }finally{overlay(false);renderOrgGrid();}
 }
+
 function orgAddBlank(at){
   orgPages.splice(at,0,{uid:++orgSeq, docId:null, pageIndex:-1, rot:0, blank:true, thumbURL:'', label:'em branco'});
   renderOrgGrid();
@@ -843,86 +911,53 @@ function orgDelete(i){
 }
 function orgDup(i){
   const p=orgPages[i];
-  orgPages.splice(i+1,0,{...p, uid:++orgSeq});
+  orgPages.splice(i+1,0,{...p, uid:++orgSeq, copy:true});
   renderOrgGrid();
 }
 function orgReset(){
-  orgDocs={}; orgPages=[];
+  orgDocs={}; orgPages=[]; orgDocSeq=0; orgSeq=0; orgDragFrom=-1;
   $('#org-drop').style.display=''; $('#org-ws').classList.remove('on');
   $('#org-grid').innerHTML='';
   const lg=$('#org-legend'); if(lg) lg.innerHTML='';
 }
 function renderOrgLegend(){
-  const box=$('#org-legend'); if(!box) return;
-  box.innerHTML='';
-  const usedIds=[...new Set(orgPages.filter(p=>!p.blank).map(p=>p.docId))];
-  if(usedIds.length<2) return; // legenda só faz sentido com 2+ arquivos
+  const box=$('#org-legend');if(!box)return;box.replaceChildren();
+  const usedIds=[...new Set(orgPages.filter(p=>!p.blank).map(p=>p.docId))].sort((a,b)=>a-b);
   usedIds.forEach(id=>{
-    const d=orgDocs[id]; if(!d) return;
-    const chip=document.createElement('div');
-    chip.className='lchip';
-    chip.innerHTML=`<div class="dot" style="background:${d.color}"></div><span>${d.name}</span>`;
-    box.appendChild(chip);
+    const d=orgDocs[id];if(!d)return;
+    const chip=document.createElement('div');chip.className='lchip';chip.title=d.name;
+    const dot=document.createElement('div');dot.className='dot';dot.style.background=d.color;
+    const text=document.createElement('span');text.textContent='Arquivo '+d.fileNumber+' · '+d.name;chip.append(dot,text);box.append(chip);
   });
 }
 function renderOrgGrid(){
-  const has = orgPages.length>0;
-  $('#org-drop').style.display = has?'none':'';
-  $('#org-ws').classList.toggle('on', has);
-  $('#org-count').textContent = orgPages.length+' página'+(orgPages.length>1?'s':'');
-  renderOrgLegend();
-  const multiDoc = new Set(orgPages.filter(p=>!p.blank).map(p=>p.docId)).size>1;
-  const g=$('#org-grid'); g.innerHTML='';
+  const has=orgPages.length>0;$('#org-drop').style.display=has?'none':'';$('#org-ws').classList.toggle('on',has);
+  $('#org-count').textContent=orgPages.length+' página'+(orgPages.length>1?'s':'');renderOrgLegend();
+  const g=$('#org-grid');g.replaceChildren();
   orgPages.forEach((pg,idx)=>{
-    const el=document.createElement('div');
-    el.className='pcard'; el.draggable=true; el.dataset.idx=idx;
-    const rotSwap = pg.rot%180!==0;
-    const color = pg.blank ? '#8a93a8' : (orgDocs[pg.docId]?orgDocs[pg.docId].color:'#8a93a8');
-    if(multiDoc){
-      el.style.borderColor = color+'66';
-      el.style.background = color+'12';
-    }
-    el.innerHTML = `
-      ${multiDoc?`<div class="docbar" style="background:${color}"></div>`:''}
+    const doc=pg.blank?null:orgDocs[pg.docId],color=doc?.color||'#8a93a8',sourcePage=pg.pageIndex+1,rotSwap=pg.rot%180!==0;
+    const el=document.createElement('div');el.className='pcard';el.draggable=true;el.dataset.idx=idx;el.dataset.uid=pg.uid;
+    el.dataset.document=pg.docId||'';el.dataset.originalPage=pg.blank?'':sourcePage;el.dataset.fileNumber=doc?.fileNumber||'';el.dataset.originColor=color;
+    el.style.borderColor=color+'77';el.style.background=color+'12';
+    el.title=pg.blank?'Página em branco · posição '+(idx+1):'Arquivo '+doc.fileNumber+' — página original '+sourcePage+' de '+doc.numPages+' — '+doc.name+' · posição no PDF: '+(idx+1);
+    const source=pg.blank?'Em branco':'Página '+sourcePage+' de '+doc.numPages;
+    const filename=doc?escapeHtml(doc.name):'Página inserida';
+    el.innerHTML=`<div class="docbar" style="background:${color}"></div>
       <button class="addbetween" title="Inserir página em branco aqui" onclick="event.stopPropagation();orgAddBlank(${idx})">＋</button>
-      <div class="pv">${pg.blank
-        ? '<div class="blankpage">EM BRANCO</div>'
-        : `<img src="${pg.thumbURL}" draggable="false" style="transform:rotate(${pg.rot}deg)${rotSwap?';max-width:150px;max-height:100px':''}" alt="">`}
-      </div>
-      <div class="pnum">${multiDoc?`<span class="dot" style="background:${color}"></span>`:''}${idx+1} · ${pg.blank?'em branco':pg.label}</div>
-      <div class="ops">
-        <button class="iconbtn" title="Girar 90°" onclick="event.stopPropagation();orgRotate(${idx})">⟳</button>
-        <button class="iconbtn" title="Duplicar página" onclick="event.stopPropagation();orgDup(${idx})">⧉</button>
-        <button class="iconbtn danger" title="Excluir página" onclick="event.stopPropagation();orgDelete(${idx})">🗑</button>
-      </div>`;
-    el.addEventListener('dragstart', e=>{ orgDragFrom=idx; el.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('application/x-pdf-livre','reorder'); e.dataTransfer.setData('text/plain', String(idx)); });
-    el.addEventListener('dragend', ()=>{ el.classList.remove('dragging'); clearDropMarks(); });
-    el.addEventListener('dragover', e=>{
-      e.preventDefault();
-      const r=el.getBoundingClientRect();
-      const left = (e.clientX - r.left) < r.width/2;
-      el.classList.toggle('dropside-l', left);
-      el.classList.toggle('dropside-r', !left);
-    });
-    el.addEventListener('dragleave', ()=>el.classList.remove('dropside-l','dropside-r'));
-    el.addEventListener('drop', e=>{
-      e.preventDefault();
-      const r=el.getBoundingClientRect();
-      const left = (e.clientX - r.left) < r.width/2;
-      let to = idx + (left?0:1);
-      const from = orgDragFrom;
-      clearDropMarks();
-      if(from<0) return;
-      if(to>from) to--;
-      if(to===from) { renderOrgGrid(); return; }
-      const [m]=orgPages.splice(from,1);
-      orgPages.splice(to,0,m);
-      orgDragFrom=-1;
-      renderOrgGrid();
-    });
-    g.appendChild(el);
+      <div class="pv">${pg.blank?'<div class="blankpage">EM BRANCO</div>':`<img src="${pg.thumbURL}" draggable="false" style="transform:rotate(${pg.rot}deg)${rotSwap?';max-width:150px;max-height:100px':''}" alt="Página ${sourcePage} do arquivo ${doc.fileNumber}">`}</div>
+      <div class="pnum"><strong class="psource"><span class="dot" style="background:${color}"></span>${source}</strong><span class="pfile">${doc?'Arquivo '+doc.fileNumber+' · ':''}${filename}</span><span class="porder">Posição no PDF: ${idx+1}${pg.copy?' · cópia':''}</span></div>
+      <div class="ops"><button class="iconbtn" title="Girar 90°" onclick="event.stopPropagation();orgRotate(${idx})">⟳</button><button class="iconbtn" title="Duplicar página" onclick="event.stopPropagation();orgDup(${idx})">⧉</button><button class="iconbtn danger" title="Excluir página" onclick="event.stopPropagation();orgDelete(${idx})">🗑</button></div>`;
+    el.addEventListener('dragstart',e=>{orgDragFrom=idx;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('application/x-pdf-livre','reorder');e.dataTransfer.setData('text/plain',String(idx));});
+    el.addEventListener('dragend',()=>{el.classList.remove('dragging');orgDragFrom=-1;clearDropMarks();});
+    el.addEventListener('dragover',e=>{e.preventDefault();const r=el.getBoundingClientRect(),left=e.clientX-r.left<r.width/2;el.classList.toggle('dropside-l',left);el.classList.toggle('dropside-r',!left);});
+    el.addEventListener('dragleave',()=>el.classList.remove('dropside-l','dropside-r'));
+    el.addEventListener('drop',e=>{
+      e.preventDefault();const r=el.getBoundingClientRect(),left=e.clientX-r.left<r.width/2;let to=idx+(left?0:1);const from=orgDragFrom;clearDropMarks();orgDragFrom=-1;
+      if(from<0||from>=orgPages.length)return;if(to>from)to--;if(to!==from){const[moved]=orgPages.splice(from,1);orgPages.splice(to,0,moved);}renderOrgGrid();
+    });g.append(el);
   });
 }
+
 function clearDropMarks(){ document.querySelectorAll('.pcard').forEach(c=>c.classList.remove('dropside-l','dropside-r')); }
 
 async function doOrganize(){
@@ -1345,5 +1380,7 @@ async function doFix(){
 }
 </script>
 <script src="assets/signatures.js"></script>
+<script src="assets/letters.js"></script>
+<script src="assets/delete-pages.js"></script>
 </body>
 </html>

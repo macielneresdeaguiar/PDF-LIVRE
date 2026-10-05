@@ -14,8 +14,8 @@ const SIGFONTS = [
 let sigLibrary = [], sigSelected = new Set();
 let sigStorage = {mode:'memory', db:null};
 let sigLibraryLoaded = false, sigLibraryChannel = null;
-let signFile = null, signPageDims = [], signPlacements = [];
-let placing = false, placingSignatures = [], placingRepeat = false;
+let signFile = null, signSources = [], signPageDims = [], signPlacements = [];
+let placing = false, placingSignatures = [], placingRepeat = false, placingLastPages = false;
 let sigSeq = 0, selPlacement = null, signLoading = false, signLoadGeneration = 0;
 let penColor = '#111111', sigTabCur = 'type', selFont = 0;
 let sigSaving = false, sigModalFocus = null, sigManageContext = null;
@@ -275,67 +275,143 @@ async function confirmSigManage(){
   finally{ $('#sig-manage-confirm').disabled = false; }
 }
 
-/* ================= Documento e posições independentes ================= */
-setupDrop($('#sign-drop'),fs=>signLoad(fs[0]),false);
-async function signLoad(f){
-  if(!f || signLoading) return;
+/* ================= Vários PDFs em um lote, posições independentes ================= */
+setupDrop($('#sign-drop'),fs=>signLoadFiles(fs),true);
+async function signLoad(file){ return signLoadFiles([file]); } // compatibilidade / carta gerada
+async function signPickMore(){ const fs=await pickFiles(true);if(fs.length)await signLoadFiles(fs); }
+async function signLoadFiles(files,{replace=false}={}){
+  const pdfs=[...files].filter(isPdfFile);if(!pdfs.length)return false;
   await signatureLibraryReady;
-  if(signPlacements.length && !confirm('Abrir outro PDF descarta as posições deste documento. Suas assinaturas salvas serão mantidas. Continuar?')) return;
-  const generation = ++signLoadGeneration;
-  let d;
-  signLoading = true; cancelPlacing();
-  overlay(true,'Abrindo PDF…','Suas assinaturas e seu documento ficam no navegador.');
+  if(signLoading){toast('Aguarde o lote atual terminar de abrir.',true);return false;}
+  if(replace && signPlacements.length && !confirm('Abrir um novo lote descarta as posições atuais, mas mantém a biblioteca. Continuar?'))return false;
+  const generation=++signLoadGeneration,wasEmpty=!signSources.length;
+  signLoading=true;cancelPlacing();updateSignBar();overlay(true,'Abrindo seus PDFs…','Eles serão baixados juntos em um único PDF, na ordem da lista.');
   try{
-    const bytes = new Uint8Array(await f.arrayBuffer());
-    d = await loadPdfJs(bytes);
-    const cont = document.createDocumentFragment(), dims = [];
-    for(let p=1;p<=d.numPages;p++){
-      if(generation !== signLoadGeneration) return;
-      const page = await d.getPage(p), vp1 = page.getViewport({scale:1});
-      dims.push({w:vp1.width,h:vp1.height,transform:vp1.transform.slice(),rotation:vp1.rotation});
-      const scale = Math.min(2,1520/vp1.width), vp = page.getViewport({scale});
-      const c = document.createElement('canvas'); c.className = 'pgcv'; c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
-      await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
-      const wrap = document.createElement('div'); wrap.className = 'spage'; wrap.dataset.page = p-1;
-      const label = document.createElement('div'); label.className = 'plabel'; label.textContent = 'Página '+p+' de '+d.numPages;
-      wrap.append(label,c); wrap.addEventListener('click',e=>pageClick(e,wrap)); cont.append(wrap);
-      prog(p/d.numPages);
+    const sources=replace?[]:[...signSources];
+    let sourceNumber=sources.reduce((n,s)=>Math.max(n,s.fileNumber),0);
+    for(let i=0;i<pdfs.length;i++){
+      const f=pdfs[i],bytes=new Uint8Array(await f.arrayBuffer());let check;
+      try{check=await loadPdfJs(bytes);sources.push({id:sigNewId(),fileNumber:++sourceNumber,name:f.name,bytes,pageCount:check.numPages});}
+      catch(e){throw new Error('Não consegui abrir “'+f.name+'”. Verifique senha ou corrupção. Nenhum arquivo deste envio foi adicionado.');}
+      finally{if(check)await check.destroy();}
+      prog((i+1)/pdfs.length*.15);
     }
-    if(generation !== signLoadGeneration) return;
-    signFile = {name:f.name,bytes}; signPageDims = dims; signPlacements = []; selPlacement = null;
-    $('#sign-pages').replaceChildren(cont); $('#sign-drop').style.display = 'none'; $('#sign-ws').classList.add('on');
-    $('#sign-file-name').textContent = f.name; $('#sign-file-meta').textContent = dims.length+' página(s) · '+fmtSize(bytes.length);
-    updateSignBar();
-    toast(sigLibrary.length ? 'PDF aberto. Selecione as pessoas e clique em “Posicionar selecionadas”.' : 'PDF aberto. Crie as assinaturas na biblioteca acima.');
-  }catch(e){ console.warn('Abrir PDF para assinatura:',e); toast('Não foi possível abrir este PDF. Verifique se está protegido por senha ou corrompido.',true); }
-  finally{ if(d) await d.destroy(); signLoading = false; overlay(false); }
+    await compileSignSources(sources,{preserve:!replace,generation});
+    if(wasEmpty && sources.length>1){$('#sig-repeat-last').checked=true;$('#sig-repeat').checked=false;}
+    toast(pdfs.length+' PDF(s) adicionado(s). Selecione as assinaturas e onde elas devem entrar.');return true;
+  }catch(e){console.warn('Lote de assinaturas:',e);toast(e.message,true);return false;}
+  finally{signLoading=false;overlay(false);updateSignBar();renderSignSourceList();}
+}
+async function compileSignSources(sources,{preserve=true,generation=signLoadGeneration}={}){
+  let bytes;
+  if(sources.length===1)bytes=sources[0].bytes;
+  else{
+    const out=await PDFDocument.create();
+    for(let i=0;i<sources.length;i++){
+      const src=await PDFDocument.load(sources[i].bytes,{ignoreEncryption:true,updateMetadata:false});
+      const copied=await out.copyPages(src,src.getPageIndices());copied.forEach(page=>out.addPage(page));copyOCProperties(out,src);
+      prog(.15+(i+1)/sources.length*.15);
+    }
+    bytes=await out.save({useObjectStreams:false});
+  }
+  const d=await loadPdfJs(bytes);
+  try{
+    const cont=document.createDocumentFragment(),dims=[],newSources=[];let offset=0;
+    sources.forEach(source=>{newSources.push({...source,start:offset,end:offset+source.pageCount});offset+=source.pageCount;});
+    let sourceIndex=0;
+    for(let p=1;p<=d.numPages;p++){
+      if(generation!==signLoadGeneration)throw new Error('A abertura do lote foi cancelada.');
+      while(sourceIndex<newSources.length-1 && p-1>=newSources[sourceIndex].end)sourceIndex++;
+      const source=newSources[sourceIndex],originalPage=p-1-source.start;
+      const page=await d.getPage(p),vp1=page.getViewport({scale:1});
+      dims.push({w:vp1.width,h:vp1.height,transform:vp1.transform.slice(),rotation:vp1.rotation,sourceId:source.id,originalPage,fileName:source.name,fileNumber:source.fileNumber});
+      const scale=Math.min(2,1520/vp1.width),vp=page.getViewport({scale});
+      const c=document.createElement('canvas');c.className='pgcv';c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
+      await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+      const wrap=document.createElement('div');wrap.className='spage';wrap.dataset.page=p-1;wrap.dataset.source=source.id;
+      const label=document.createElement('div');label.className='plabel';
+      label.textContent='Arquivo '+source.fileNumber+' · pág. '+(originalPage+1)+'/'+source.pageCount+' · '+source.name+' · posição '+p+'/'+d.numPages;label.title=label.textContent;
+      wrap.append(label,c);wrap.addEventListener('click',e=>pageClick(e,wrap));cont.append(wrap);prog(.30+p/d.numPages*.70);
+    }
+    const pageByOrigin=new Map(dims.map((dim,index)=>[dim.sourceId+':'+dim.originalPage,index]));
+    const placements=preserve?signPlacements.flatMap(pl=>{
+      const old=signPageDims[pl.page];if(!old)return[];const index=pageByOrigin.get(old.sourceId+':'+old.originalPage);
+      return index===undefined?[]:[{...pl,page:index}];
+    }):[];
+    signSources=newSources;signFile={name:sources.length===1?sources[0].name:'documentos_unificados.pdf',bytes};signPageDims=dims;signPlacements=placements;
+    if(!placements.some(p=>p.id===selPlacement))selPlacement=null;
+    $('#sign-pages').replaceChildren(cont);$('#sign-drop').style.display='none';$('#sign-ws').classList.add('on');
+    $('#sign-file-name').textContent=sources.length===1?sources[0].name:sources.length+' PDFs no mesmo lote';
+    $('#sign-file-meta').textContent=dims.length+' página(s) no total · '+fmtSize(bytes.length)+' · download em um único PDF';
+    renderPlacements();renderSignSourceList();
+  }finally{await d.destroy();}
+}
+function renderSignSourceList(){
+  const list=$('#sign-source-list');if(!list)return;list.replaceChildren();
+  signSources.forEach((source,index)=>{
+    const row=document.createElement('div');row.className='sign-source-row';row.dataset.source=source.id;
+    const meta=document.createElement('div');meta.className='sign-source-meta';
+    const name=document.createElement('strong');name.textContent=source.name;name.title=source.name;
+    const hint=document.createElement('span');hint.textContent='Arquivo '+source.fileNumber+' · '+source.pageCount+' página(s) · posições '+(source.start+1)+'–'+source.end;meta.append(name,hint);
+    const actions=document.createElement('div');actions.className='sign-source-actions';
+    [['↑','Mover arquivo para cima',()=>signMoveSource(index,-1),index===0],['↓','Mover arquivo para baixo',()=>signMoveSource(index,1),index===signSources.length-1],['✕','Remover este arquivo do lote',()=>signRemoveSource(source.id),false]].forEach(([text,title,fn,disabled])=>{
+      const b=document.createElement('button');b.className='iconbtn'+(text==='✕'?' danger':'');b.textContent=text;b.title=title;b.setAttribute('aria-label',title);b.disabled=signLoading||disabled;b.onclick=fn;actions.append(b);
+    });row.append(meta,actions);list.append(row);
+  });
+}
+async function rebuildSignSources(sources){
+  if(signLoading)return false;const generation=++signLoadGeneration;signLoading=true;cancelPlacing();updateSignBar();overlay(true,'Atualizando o lote…','As posições acompanham a página original de cada arquivo.');
+  try{await compileSignSources(sources,{preserve:true,generation});return true;}
+  catch(e){toast('Não foi possível atualizar: '+e.message,true);return false;}
+  finally{signLoading=false;overlay(false);updateSignBar();renderSignSourceList();}
+}
+async function signMoveSource(index,direction){
+  const to=index+direction;if(to<0||to>=signSources.length||signLoading)return;
+  const next=[...signSources];[next[index],next[to]]=[next[to],next[index]];await rebuildSignSources(next);
+}
+async function signRemoveSource(id){
+  if(signLoading)return;
+  const hasMarks=signPlacements.some(p=>signPageDims[p.page]?.sourceId===id);
+  if(hasMarks && !confirm('Remover este PDF também remove suas assinaturas posicionadas. Os outros PDFs e a biblioteca serão mantidos. Continuar?'))return;
+  const next=signSources.filter(s=>s.id!==id);
+  if(!next.length){signClearDocument();return;}await rebuildSignSources(next);
+}
+function signClearDocument(){
+  ++signLoadGeneration;signFile=null;signSources=[];signPlacements=[];signPageDims=[];selPlacement=null;cancelPlacing();
+  $('#sign-pages').replaceChildren();$('#sign-source-list').replaceChildren();$('#sign-drop').style.display='';$('#sign-ws').classList.remove('on');$('#sig-repeat').checked=false;$('#sig-repeat-last').checked=false;updateSignBar();
 }
 function signReset(){
-  if(signPlacements.length && !confirm('Trocar o PDF remove as posições atuais. A biblioteca de assinaturas será mantida. Continuar?')) return;
-  ++signLoadGeneration; signFile = null; signPlacements = []; signPageDims = []; selPlacement = null; cancelPlacing();
-  $('#sign-pages').replaceChildren(); $('#sign-drop').style.display = ''; $('#sign-ws').classList.remove('on'); updateSignBar();
+  if(signLoading)return;
+  if(signPlacements.length && !confirm('Recomeçar remove os PDFs e suas posições atuais. A biblioteca de assinaturas será mantida. Continuar?'))return;signClearDocument();
 }
+function setSignRepeatMode(mode){
+  if(mode==='all' && $('#sig-repeat').checked)$('#sig-repeat-last').checked=false;
+  if(mode==='last' && $('#sig-repeat-last').checked)$('#sig-repeat').checked=false;cancelPlacing();
+}
+
 function clearSignPlacements(){
   if(!signPlacements.length || !confirm('Remover todas as assinaturas posicionadas neste PDF? A biblioteca não será alterada.')) return;
   signPlacements = []; selPlacement = null; cancelPlacing(); renderPlacements();
 }
 function updateSignBar(){
   const selected = signatureSelection();
-  $('#sig-place-btn').disabled = !signFile || !selected.length;
+  $('#sig-place-btn').disabled = signLoading || !signFile || !selected.length;
   $('#sig-place-btn').textContent = selected.length > 1 ? '📍 Posicionar '+selected.length+' selecionadas' : '📍 Posicionar selecionada';
-  $('#sign-go').disabled = !signFile || !signPlacements.length;
+  $('#sign-go').disabled = signLoading || !signFile || !signPlacements.length;
+  $('#sign-go').textContent = signSources.length>1 ? 'Baixar PDFs juntos ↓' : 'Baixar PDF assinado ↓';
   $('#sig-clear-btn').disabled = !signPlacements.length;
+  const covered=new Set(signPlacements.map(p=>signPageDims[p.page]?.sourceId)).size;
   const people = new Set(signPlacements.map(p=>p.signature.name.trim().toLocaleLowerCase('pt-BR'))).size;
-  $('#sign-count').textContent = signPlacements.length ? signPlacements.length+' assinatura'+(signPlacements.length>1?'s':'')+' no documento · '+people+' pessoa'+(people>1?'s':'')+' · arraste para mover, use o círculo roxo para redimensionar.' :
+  $('#sign-count').textContent = signPlacements.length ? signPlacements.length+' assinatura'+(signPlacements.length>1?'s':'')+' no lote · '+people+' pessoa'+(people>1?'s':'')+' · '+covered+'/'+signSources.length+' arquivo(s) com assinatura · arraste para mover, use o círculo roxo para redimensionar.' :
     'Marque as assinaturas na biblioteca. Elas podem ser colocadas juntas, lado a lado.';
 }
 function startPlacing(){
   if(!signFile) return;
   const selected = signatureSelection();
   if(!selected.length){ toast('Selecione uma ou mais pessoas na biblioteca.',true); return; }
-  placing = true; placingSignatures = selected.map(s=>({...s})); placingRepeat = $('#sig-repeat').checked; selPlacement = null;
+  placing = true; placingSignatures = selected.map(s=>({...s})); placingRepeat = $('#sig-repeat').checked; placingLastPages = $('#sig-repeat-last').checked; selPlacement = null;
   const names = selected.map(s=>s.name).join(' + ');
-  $('#placing-message').textContent = 'Clique no PDF para colocar '+names+(placingRepeat?' em todas as páginas.':' neste local.')+(selected.length>1?' Depois ajuste cada assinatura separadamente.':'');
+  $('#placing-message').textContent = 'Clique no PDF para colocar '+names+(placingRepeat?' em todas as páginas.':placingLastPages?' na última página de cada PDF.':' neste local.')+(selected.length>1?' Depois ajuste cada assinatura separadamente.':'');
   $('#placing-banner').classList.add('on'); document.querySelectorAll('.spage').forEach(s=>s.classList.add('placing'));
   document.querySelectorAll('.sigbox.sel').forEach(s=>s.classList.remove('sel'));
   const first = $('#sign-pages .spage');
@@ -368,12 +444,12 @@ function pageClick(e,wrap){
   if(!placing){ selPlacement = null; document.querySelectorAll('.sigbox.sel').forEach(b=>b.classList.remove('sel')); return; }
   if(!placingSignatures.length) return;
   const r = wrap.getBoundingClientRect(), cx = sigClamp((e.clientX-r.left)/r.width,0,1), cy = sigClamp((e.clientY-r.top)/r.height,0,1);
-  const page = +wrap.dataset.page, sigs = placingSignatures, repeat = placingRepeat;
-  const targetPages = repeat ? signPageDims.map((_,index)=>index) : [page];
+  const page = +wrap.dataset.page, sigs = placingSignatures, repeat = placingRepeat, last = placingLastPages;
+  const targetPages = repeat ? signPageDims.map((_,index)=>index) : last ? signSources.map(source=>source.end-1) : [page];
   targetPages.forEach(p=>signPlacements.push(...signatureGroupPositions(sigs,p,cx,cy)));
   const lastOnThisPage = signPlacements.filter(p=>p.page===page).at(-1); selPlacement = lastOnThisPage?.id || null;
   cancelPlacing(); renderPlacements();
-  toast('✅ '+sigs.length+' assinatura(s) posicionada(s)'+(repeat?' em todas as páginas.':'.')+' Arraste para ajustar.');
+  toast('✅ '+sigs.length+' assinatura(s) posicionada(s)'+(repeat?' em todas as páginas.':last?' na última página de cada PDF.':'.')+' Arraste para ajustar.');
 }
 function renderPlacements(){
   document.querySelectorAll('#sign-pages .sigbox').forEach(b=>b.remove());
@@ -423,6 +499,9 @@ function signaturePdfPoint(x,y,transform){
 }
 async function doSign(){
   if(!signFile || !signPlacements.length) return;
+  const covered=new Set(signPlacements.map(p=>signPageDims[p.page]?.sourceId));
+  const missing=signSources.filter(source=>!covered.has(source.id));
+  if(missing.length && !confirm('Há '+missing.length+' PDF(s) sem assinatura posicionada: '+missing.map(s=>s.name).join(', ')+'. Baixar o lote mesmo assim?'))return;
   cancelPlacing(); const placements = signPlacements.map(p=>({...p,signature:{...p.signature}}));
   $('#sign-go').disabled = true; overlay(true,'Aplicando as assinaturas…','Cada pessoa mantém sua própria assinatura. O PDF original não é rasterizado.');
   try{
@@ -440,7 +519,7 @@ async function doSign(){
       prog((i+1)/placements.length);
     }
     const bytes=await doc.save({useObjectStreams:false});
-    download(bytes,signFile.name.replace(/\.pdf$/i,'')+'_assinado.pdf');
+    download(bytes,signSources.length>1?'documentos_assinados.pdf':signFile.name.replace(/\.pdf$/i,'')+'_assinado.pdf');
     toast('✅ PDF pronto com '+placements.length+' assinatura(s)!');
   }catch(e){ console.error(e); toast('Erro ao assinar: '+e.message,true); }
   finally{ overlay(false); updateSignBar(); }

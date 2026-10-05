@@ -1,5 +1,7 @@
 # Assinaturas no PDF Livre
 
+**Novidade:** selecione vários PDFs de uma vez e baixe um único arquivo com todas as páginas. Use `Adicionar PDFs` para ampliar o lote. Para repetir assinaturas no fim de cada arquivo, marque `Última página de cada PDF`. Consulte `GUIA-CARTAS-E-PAGINAS.md` para o fluxo completo.
+
 ## Vanderson e Evandro Moreira no mesmo arquivo
 
 1. Abra **Assinar** no menu (ou **Assinar PDF** na tela inicial).
@@ -32,7 +34,7 @@ O processamento remove o papel e recorta os pixels da tinta; não inventa nem re
 
 - A biblioteca guarda **até 10 assinaturas**, incluindo as criadas pelo nome, desenhos e fotos.
 - Elas ficam no navegador, associadas ao endereço do site. Não são enviadas para servidores.
-- **Trocar PDF** ou **Limpar posições** não apaga a biblioteca.
+- **Recomeçar lote** ou **Limpar posições** não apaga a biblioteca.
 - Os ícones de cada assinatura permitem baixar um PNG transparente, renomear ou excluir.
 - Excluir ou renomear uma assinatura salva não modifica as cópias que você já posicionou no PDF atual.
 - Ao atingir 10, exclua uma para cadastrar outra.
@@ -51,6 +53,6 @@ Insere **assinaturas visuais** no PDF, preservando o conteúdo original e a sele
 
 ## Atualizar a hospedagem
 
-O pacote `pdf-livre-site.zip` inclui `index.html`, `assets/`, `vendor/`, `README.md` e este guia. Publique todos esses arquivos, mantendo as pastas, no mesmo projeto estático do Render. Não basta atualizar só o HTML: os scripts, estilos e fontes de assinatura estão nas pastas incluídas.
+O pacote `pdf-livre-site.zip` inclui `index.html`, `assets/`, `vendor/`, `README.md`, `GUIA-CARTAS-E-PAGINAS.md`, `COMO-PUBLICAR.md` e este guia. Publique todos esses arquivos, mantendo as pastas, no mesmo projeto estático do Render. Não basta atualizar só o HTML: os scripts, estilos e fontes de assinatura estão nas pastas incluídas.
 
 A implementação deste pacote precisa ser publicada para aparecer em `https://pdf-livre.onrender.com/`; a prévia da área de trabalho não atualiza esse endereço automaticamente.

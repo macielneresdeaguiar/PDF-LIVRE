@@ -9,6 +9,7 @@ Ferramentas PDF sem limites de uso e sem cadastro — todo o processamento dos a
 - 🗜️ **Comprimir PDF** — 3 níveis de compressão.
 - ✍️ **Assinar PDF** — vários PDFs de uma vez, baixados em **um único arquivo**; várias pessoas no mesmo lote, assinaturas pelo nome com 4 caligrafias locais, desenho ou foto com remoção adaptativa de fundo. Biblioteca local de até **10 assinaturas**, seleção múltipla, posicionamento lado a lado, movimento/tamanho independentes e repetição em todas as páginas. Backup/importação e download de PNG transparente. Repetição em todas as páginas ou na última página de cada PDF original; adicionar, remover e reordenar arquivos preservando as posições nas páginas de origem. Preserva o texto original e suporta páginas rotacionadas e recortadas.
 - 📝 **Carta de Explicação** — 4 modelos baseados nos exemplos enviados (Loja do Vidraceiro, Qualieng, DR Utilidades e Djaci), dados da NF, descrição da nova situação, valor por extenso, revisão do texto, um ou dois espaços de assinatura, PDF paginado e envio direto para Assinar. Não reutiliza as assinaturas dos exemplos. A composição é local por modelo e dados informados, sem IA externa.
+- 🔢 **Numerar páginas** — grava números visíveis em todas as páginas do PDF, sempre de **1 até a última**. Prévia do resultado, seis posições, tamanho/margem/cor, fundo de contraste opcional e formatos `1`, `1 / N` e `Página 1 de N`. Mantém o texto e imagens originais, inclusive em páginas giradas/recortadas; aceita seleção, drop global e Ctrl+V. Baixa um novo arquivo `_numerado.pdf`.
 - 🗑️ **Excluir páginas** — seleção por miniaturas ou intervalos como `2, 4-6`, seleção reversível e bloqueio de PDF vazio. Baixa um novo arquivo, sem alterar o original e sem rasterizar as páginas mantidas.
 - 🪄 **Corrigir PDF** — recupera a corrupção Wingdings/Print to PDF validada em DANFE/boletos brasileiros, redesenha áreas corrompidas e adiciona texto invisível copiável. Páginas sem texto usam OCR local com tesseract.js. Outros tipos de corrupção podem não ser recuperados automaticamente.
 
@@ -35,9 +36,10 @@ index.html
 assets/
   signatures.css         # Interface e fontes de assinatura
   signatures.js          # Biblioteca, fotos, lote e posicionamento/exportação
-  tools.css              # Cartas, exclusão e identificação de origem
+  tools.css              # Cartas, numeração, exclusão e identificação de origem
   letters.js             # Modelos, redação por campos, revisão e PDF
   delete-pages.js         # Excluir páginas sem rasterizar
+  number-pages.js         # Numeração visível e sequencial em todas as páginas
 vendor/
   fontkit.min.js          # Incorporação local das fontes das cartas
   pdf-lib.min.js
@@ -87,10 +89,12 @@ npm install playwright
 npx playwright install chromium
 node tests/signatures.e2e.cjs
 node tests/new-features.e2e.cjs
+node tests/number-pages.e2e.cjs
 # com pymupdf e numpy instalados:
 python3 tests/validate_pdfs.py
+python3 tests/validate_number_pages.py
 ```
 
-Atualização: 02/10/2026 — cartas, assinatura em lote, origem permanente das páginas e exclusão.
+Atualização: **21/10/2026** — novo módulo Numerar páginas, de 1 até a última, com prévia real e opções de posição. Todas as ferramentas anteriores foram preservadas. **45 verificações de navegador passaram**, além da validação dos PDFs exportados.
 
 A publicação no Render é feita pelo repositório GitHub conectado. Siga `COMO-PUBLICAR.md` e publique o conteúdo completo do ZIP; não publique apenas o arquivo compactado. A biblioteca de assinaturas mantém o mesmo banco local da versão anterior. Os modelos originais assinados, uploads pessoais e testes não entram no pacote de produção.

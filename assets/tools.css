@@ -82,3 +82,27 @@
 @media(max-width:1100px) and (min-width:641px){.hwrap{flex-wrap:wrap;gap:8px}.hwrap nav{order:3;flex-basis:100%;justify-content:center;margin:0}#placing-banner{top:118px}.letter-review{top:135px}}
 @media(max-width:980px){.letter-layout{grid-template-columns:1fr}.letter-review{position:static}.letter-preview-column{width:100%}.letter-preview-pages{max-width:720px;margin:auto}}
 @media(max-width:640px){.tool-panel{padding:17px}.field-pair{grid-template-columns:1fr;gap:0}.letter-layout{gap:18px}.letter-actions{flex-direction:column}.letter-actions .btn{white-space:normal}.sign-doc-info{flex-wrap:wrap}.sign-doc-meta{flex-basis:calc(100% - 45px)}.sign-doc-info>.btn{flex:1;justify-content:center}.sign-source-row{padding:10px}.sign-source-meta strong{font-size:12px}.sign-source-meta span{font-size:10.5px}.delete-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.delete-page{padding:10px 8px}.delete-page img{height:155px}.delete-summary .btn{width:100%;justify-content:center;font-size:14px}.delete-range-row{gap:10px}.delete-range-row .field{flex-basis:100%}.delete-range-row .sign-link{padding-bottom:0}.org-source-help{font-size:11.5px}#org-grid .psource{font-size:11.5px}#org-grid .pfile{font-size:10px}#org-grid .pcard .ops{gap:3px}.sign-toolbar .btn.sm{padding:9px 12px;font-size:12px}}
+
+/* Numeração real de todas as páginas, de 1 em diante. */
+.ico.number{background:rgba(94,200,248,.14);color:#5ec8f8}
+.hwrap nav{gap:3px}
+.hwrap nav button{padding:9px 10px;white-space:nowrap}
+.number-layout{display:grid;grid-template-columns:minmax(275px,.8fr) minmax(350px,1.6fr);gap:22px;align-items:start}
+.number-options{min-width:0}
+.number-options .field-pair{grid-template-columns:1fr 1fr;gap:10px}
+.number-options .field input,.number-options .field select{font-size:13px;padding:9px 10px}
+.number-options .form-check{margin:4px 0 18px}
+.number-sequence-note{margin-top:20px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.number-sequence-note b{color:var(--txt)}
+.number-options>.btn{width:100%;justify-content:center;font-size:14px;padding:13px 14px}
+#number-status{margin-top:14px;margin-bottom:0;min-height:20px}
+.number-preview-panel{min-width:0}
+.number-preview-bar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.number-page-control{display:flex;gap:7px;align-items:center;font-size:12px;color:var(--txt2)}
+.number-page-control select{max-width:145px;background:var(--card);color:var(--txt);border:1px solid var(--border);border-radius:7px;padding:7px 9px;font-family:inherit;font-size:12px}
+#number-preview-label{margin-left:auto;font-size:12px;color:var(--txt2)}
+.number-page-preview{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px}
+#number-preview{display:block;width:100%;height:auto;background:#fff;box-shadow:0 2px 9px rgba(0,0,0,.3)}
+.number-preview-note{margin-top:12px;margin-bottom:0}
+@media(max-width:880px){.number-layout{grid-template-columns:1fr}.number-preview-panel{max-width:760px;width:100%;margin:auto}}
+@media(max-width:640px){.number-layout{gap:16px}.number-options .field-pair{grid-template-columns:1fr 1fr}.number-preview-bar{gap:7px}#number-preview-label{flex-basis:100%;text-align:center;margin:3px 0 0}.number-page-preview{padding:7px}}

@@ -180,6 +180,7 @@ footer b{color:var(--green)}
       <button id="nav-compress" onclick="go('compress')">Comprimir</button>
       <button id="nav-sign" onclick="go('sign')">Assinar</button>
       <button id="nav-letter" onclick="go('letter')">Carta</button>
+      <button id="nav-number" onclick="go('number')">Numerar</button>
       <button id="nav-delete" onclick="go('delete')">Excluir</button>
       <button id="nav-fix" onclick="go('fix')">Corrigir</button>
     </nav>
@@ -191,7 +192,7 @@ footer b{color:var(--green)}
 <section class="view active" id="view-home">
   <div class="hero">
     <h1>Todas as ferramentas PDF.<br><span>Sem limites. Sem cadastro. Sem espera.</span></h1>
-    <p>Junte, organize, assine, exclua páginas e crie suas cartas. Todas as ferramentas PDF em um só lugar. Tudo é processado <b>no seu navegador</b> — seus arquivos nunca saem do seu computador.</p>
+    <p>Junte, organize, assine, numere, exclua páginas e crie suas cartas. Todas as ferramentas PDF em um só lugar. Tudo é processado <b>no seu navegador</b> — seus arquivos nunca saem do seu computador.</p>
     <div class="pills">
       <div class="pill"><b>∞</b> arquivos ilimitados</div>
       <div class="pill"><b>∞</b> tamanho ilimitado</div>
@@ -221,6 +222,7 @@ footer b{color:var(--green)}
       <p>Assine vários PDFs de uma vez e baixe tudo junto. Use várias pessoas e reutilize até 10 assinaturas salvas.</p>
     </div>
     <div class="tcard" onclick="go('letter')"><div class="ico letter">📝</div><h3>Carta de Explicação</h3><p>Use seus modelos, descreva a nova situação e gere uma carta pronta para revisar e assinar.</p></div>
+    <div class="tcard" onclick="go('number')"><div class="ico number">🔢</div><h3>Numerar páginas</h3><p>Coloque números visíveis de 1 até a última página. Escolha a posição, confira a prévia e baixe o PDF numerado.</p></div>
     <div class="tcard" onclick="go('delete')"><div class="ico delete">🗑️</div><h3>Excluir páginas</h3><p>Remova uma ou várias páginas, selecionando miniaturas ou informando números e intervalos.</p></div>
     <div class="tcard" onclick="go('fix')">
       <div class="ico fix">🪄</div>
@@ -423,6 +425,35 @@ footer b{color:var(--green)}
         <p class="form-note">A prévia mostra o PDF que será gerado. Revise números, valores, nomes e justificativa antes de assinar. Se já houver PDFs no Assinar, a carta será acrescentada ao lote.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ============ NUMERAR PÁGINAS ============ -->
+<section class="view" id="view-number">
+  <div class="tool-head"><h2>🔢 Numerar páginas do PDF</h2><p>Insira números visíveis em todas as páginas, na sequência <b>1, 2, 3…</b> até a última. O conteúdo original é mantido e o download será um novo PDF.</p></div>
+  <div class="drop" id="number-drop"><div class="big">📥</div><h3>Abra o PDF que deseja numerar</h3><p>Selecione um arquivo, solte em qualquer lugar da página ou cole com Ctrl+V</p><button class="btn btn-pick">Selecionar PDF</button></div>
+  <div class="workspace" id="number-ws">
+    <div class="sign-doc-info"><span class="file-icon">📄</span><div class="sign-doc-meta"><strong id="number-file-name"></strong><span id="number-file-meta"></span></div><button class="btn ghost sm" id="number-reset" onclick="numberReset()">Trocar PDF</button></div>
+    <div class="number-layout">
+      <div class="tool-panel number-options" id="number-settings">
+        <div class="panel-heading"><span class="step-dot">1</span><h3>Configurar numeração</h3></div>
+        <label class="field">Posição dos números<select id="number-position" onchange="numberRefresh()"><option value="bottom-center">Rodapé · centro</option><option value="bottom-right">Rodapé · direita</option><option value="bottom-left">Rodapé · esquerda</option><option value="top-center">Cabeçalho · centro</option><option value="top-right">Cabeçalho · direita</option><option value="top-left">Cabeçalho · esquerda</option></select></label>
+        <label class="field">Formato<select id="number-format" onchange="numberRefresh()"><option value="simple">Somente número: 1, 2, 3…</option><option value="total">Número e total: 1 / 10</option><option value="page">Texto: Página 1 de 10</option></select></label>
+        <div class="field-pair"><label class="field">Tamanho<select id="number-size" onchange="numberRefresh()"><option value="10">Pequeno · 10 pt</option><option value="12" selected>Normal · 12 pt</option><option value="14">Grande · 14 pt</option><option value="16">Maior · 16 pt</option></select></label><label class="field">Distância da borda<select id="number-margin" onchange="numberRefresh()"><option value="16">Próxima · 16 pt</option><option value="24" selected>Normal · 24 pt</option><option value="36">Afastada · 36 pt</option><option value="48">Mais afastada · 48 pt</option></select></label></div>
+        <label class="field">Cor da numeração<select id="number-color" onchange="numberRefresh()"><option value="black">Preta</option><option value="gray">Cinza</option><option value="white">Branca · para páginas escuras</option></select></label>
+        <label class="form-check"><input type="checkbox" id="number-background" onchange="numberRefresh()"> Destacar com fundo de contraste</label>
+        <p class="form-note number-sequence-note">🔢 Sempre começa em <b>1</b> e numera <b>todas as páginas</b>, na ordem atual do arquivo. Não depende dos números originais que já estejam impressos.</p>
+        <button class="btn green" id="number-download" onclick="numberDownload()" disabled>Baixar PDF numerado ↓</button>
+        <p class="form-note" id="number-status" role="status" aria-live="polite"></p>
+      </div>
+      <div class="tool-panel number-preview-panel">
+        <div class="panel-heading"><span class="step-dot">2</span><h3>Conferir o resultado</h3></div>
+        <div class="number-preview-bar"><button class="iconbtn" id="number-prev" onclick="numberGoPage(numberCurrentPage-1)" aria-label="Página anterior" disabled>←</button><label class="number-page-control">Mostrar <select id="number-page-select" onchange="numberGoPage(this.value)" aria-label="Página da prévia" disabled></select></label><button class="iconbtn" id="number-next" onclick="numberGoPage(numberCurrentPage+1)" aria-label="Próxima página" disabled>→</button><span id="number-preview-label"></span></div>
+        <div class="number-page-preview"><canvas id="number-preview" width="1" height="1" aria-label="Prévia da página com a numeração aplicada"></canvas></div>
+        <p class="form-note number-preview-note">Esta prévia mostra a numeração que ficará no PDF baixado — não apenas uma indicação da ferramenta.</p>
+      </div>
+    </div>
+    <p class="sign-notice">ℹ️ A numeração acrescenta conteúdo ao PDF e não apaga números existentes. Confira a posição para não cobrir informações importantes. Em documentos com assinatura digital certificada, qualquer alteração pode invalidar a certificação: prefira numerar antes de assinar.</p>
   </div>
 </section>
 
@@ -658,6 +689,7 @@ function routeFiles(fs){
   else if(v==='organize') orgLoadFiles(fs);
   else if(v==='compress') compLoad(fs[0]);
   else if(v==='sign') signLoadFiles(fs);
+  else if(v==='number'){ if(fs.length>1) toast('Numerar páginas aceita um PDF por vez; abri o primeiro arquivo.'); numberLoad(fs[0]); }
   else if(v==='delete'){ if(fs.length>1) toast('Excluir páginas aceita um PDF por vez; abri o primeiro arquivo.'); deleteLoad(fs[0]); }
   else if(v==='fix') fixLoad(fs[0]);
   else if(fs.length>1){ go('merge'); addMergeFiles(fs); toast('Vários arquivos: abri a ferramenta Juntar. Use o menu se quiser outra.'); }
@@ -1382,5 +1414,6 @@ async function doFix(){
 <script src="assets/signatures.js"></script>
 <script src="assets/letters.js"></script>
 <script src="assets/delete-pages.js"></script>
+<script src="assets/number-pages.js"></script>
 </body>
 </html>

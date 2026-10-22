@@ -1,4 +1,4 @@
-# Cartas, assinatura em lote, organização e exclusão
+# Cartas, assinatura em lote, organização, numeração e exclusão
 
 ## Carta de Explicação
 
@@ -53,7 +53,22 @@ Cada cartão mostra:
 
 Exemplo: carregue um arquivo com 10 páginas e outro com 5. Mova a página 2 do arquivo 2 para entre as páginas 7 e 8 do arquivo 1. Ela continuará identificada como **Página 2 de 5 · Arquivo 2**, com a cor do arquivo 2; só sua posição no documento final muda.
 
-Essa identificação é dos cartões da ferramenta. O conteúdo impresso das páginas não recebe uma nova numeração; o leitor de PDF naturalmente mostra a sequência final do documento baixado.
+Essa identificação é dos cartões da ferramenta. Organizar não altera os números impressos no documento. Para gravar a sequência nova de 1 até a última página dentro do PDF, use **Numerar**, conforme abaixo.
+
+## Numerar todas as páginas — novo
+
+1. Abra **Numerar** no menu ou **Numerar páginas** na tela inicial.
+2. Selecione um PDF, arraste-o para qualquer lugar da página ou cole com **Ctrl+V**. A ferramenta aceita um PDF por vez.
+3. A numeração é aplicada automaticamente a **todas as páginas**, começando em **1** e terminando na quantidade total. O padrão é um número simples no centro do rodapé.
+4. Se quiser, escolha outra posição no cabeçalho/rodapé, tamanho, distância da borda, cor e formato: `1`, `1 / 10` ou `Página 1 de 10`.
+5. Use as setas ou a lista de páginas para conferir a **prévia do PDF já numerado**. Todas as páginas recebem o número, não apenas a que estiver visível.
+6. Clique em **Baixar PDF numerado**. O novo arquivo terá o sufixo **_numerado.pdf**; o original não é alterado.
+
+A sequência nunca depende da numeração antiga do documento: por exemplo, um PDF com 15 páginas recebe 1, 2, 3… 15, mesmo que tenha sido montado com vários arquivos. Cada novo PDF começa novamente em 1.
+
+A prévia corresponde ao PDF baixado. Os números ficam gravados como texto no conteúdo das páginas, não apenas nos cartões da ferramenta. O texto e as imagens anteriores são mantidos, sem transformar toda a página em imagem. Páginas giradas e com recorte visível são respeitadas.
+
+**Cuidados:** números antigos não são apagados. Confira a posição para não cobrir textos, carimbos ou assinaturas; escolha outra margem/posição se necessário. O fundo de contraste é opcional e cobre somente a pequena área do número; com tinta branca, o fundo de contraste é escuro. Numerar modifica o conteúdo e pode invalidar uma assinatura digital certificada existente: prefira numerar antes de assinar.
 
 ## Excluir páginas
 

@@ -5,7 +5,7 @@ Ferramentas PDF sem limites de uso e sem cadastro — todo o processamento dos a
 ## Ferramentas
 
 - 🔗 **Juntar PDF** — combine quantos arquivos quiser, arraste para ordenar; suporte a soltar PDFs em qualquer lugar e colar com Ctrl+V.
-- 🗂️ **Organizar PDF** — reordene, gire, duplique e exclua páginas; misture vários PDFs. A cor, o arquivo de origem e o número original da página são mantidos depois de mover. A posição no documento final é exibida separadamente.
+- 🗂️ **Organizar PDF** — **selecione várias páginas e mova o grupo inteiro de uma vez**, inclusive páginas não consecutivas de arquivos diferentes. Caixas de seleção, Shift+clique para intervalo, Ctrl+A, limpar seleção e arrasto em grupo. Também move para início, fim ou posição final explícita, inclusive por toque no celular. Reordene, gire, duplique e exclua páginas; misture vários PDFs. A cor, o arquivo de origem e o número original da página são mantidos depois de mover. A posição no documento final é exibida separadamente.
 - 🗜️ **Comprimir PDF** — 3 níveis de compressão.
 - ✍️ **Assinar PDF** — vários PDFs de uma vez, baixados em **um único arquivo**; várias pessoas no mesmo lote, assinaturas pelo nome com 4 caligrafias locais, desenho ou foto com remoção adaptativa de fundo. Biblioteca local de até **10 assinaturas**, seleção múltipla, posicionamento lado a lado, movimento/tamanho independentes e repetição em todas as páginas. Backup/importação e download de PNG transparente. Repetição em todas as páginas ou na última página de cada PDF original; adicionar, remover e reordenar arquivos preservando as posições nas páginas de origem. Preserva o texto original e suporta páginas rotacionadas e recortadas.
 - 📝 **Carta de Explicação** — 4 modelos baseados nos exemplos enviados (Loja do Vidraceiro, Qualieng, DR Utilidades e Djaci), dados da NF, descrição da nova situação, valor por extenso, revisão do texto, um ou dois espaços de assinatura, PDF paginado e envio direto para Assinar. Não reutiliza as assinaturas dos exemplos. A composição é local por modelo e dados informados, sem IA externa.
@@ -36,7 +36,7 @@ index.html
 assets/
   signatures.css         # Interface e fontes de assinatura
   signatures.js          # Biblioteca, fotos, lote e posicionamento/exportação
-  tools.css              # Cartas, numeração, exclusão e identificação de origem
+  tools.css              # Seleção em grupo, cartas, numeração, exclusão e origem
   letters.js             # Modelos, redação por campos, revisão e PDF
   delete-pages.js         # Excluir páginas sem rasterizar
   number-pages.js         # Numeração visível e sequencial em todas as páginas
@@ -87,14 +87,17 @@ O diretório `tests/` não é necessário para publicar e não é incluído no Z
 ```bash
 npm install playwright
 npx playwright install chromium
+export PLAYWRIGHT_MODULE=playwright
 node tests/signatures.e2e.cjs
 node tests/new-features.e2e.cjs
 node tests/number-pages.e2e.cjs
+node tests/organize-selection.e2e.cjs
 # com pymupdf e numpy instalados:
 python3 tests/validate_pdfs.py
 python3 tests/validate_number_pages.py
+python3 tests/validate_organize_selection.py
 ```
 
-Atualização: **21/10/2026** — novo módulo Numerar páginas, de 1 até a última, com prévia real e opções de posição. Todas as ferramentas anteriores foram preservadas. **45 verificações de navegador passaram**, além da validação dos PDFs exportados.
+Atualização: **05/11/2026** — seleção múltipla e movimento de páginas em grupo no Organizar. A ordem do grupo e a identificação de origem são mantidas; seleção por toque e botões de movimento também disponíveis. Todas as ferramentas anteriores, incluindo Numerar páginas, foram preservadas. **64 verificações de navegador passaram**, além da validação independente dos PDFs exportados; 78 páginas de saídas de organização foram comparadas com as originais.
 
 A publicação no Render é feita pelo repositório GitHub conectado. Siga `COMO-PUBLICAR.md` e publique o conteúdo completo do ZIP; não publique apenas o arquivo compactado. A biblioteca de assinaturas mantém o mesmo banco local da versão anterior. Os modelos originais assinados, uploads pessoais e testes não entram no pacote de produção.

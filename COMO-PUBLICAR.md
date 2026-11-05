@@ -1,6 +1,6 @@
 # Publicar a versão completa do PDF Livre
 
-Versão de **21/10/2026** — inclui o novo módulo **Numerar páginas** e todas as ferramentas anteriores.
+Versão de **05/11/2026** — inclui **seleção múltipla e movimento em grupo no Organizar**, além de Numerar páginas e todas as ferramentas anteriores.
 
 ## 1. Extrair o ZIP
 
@@ -24,7 +24,7 @@ COMO-PUBLICAR.md
 2. Na raiz do projeto, clique em **Add file → Upload files**.
 3. Arraste o `index.html`, os documentos e as pastas completas **assets/** e **vendor/** para a área de upload. Confirme que os caminhos das pastas foram mantidos.
 4. Os arquivos com os mesmos nomes devem substituir a versão antiga. Inclua também os novos scripts, estilos e fontes.
-5. No fim da página, escreva uma mensagem, por exemplo `Adicionar numeração sequencial de todas as páginas do PDF`.
+5. No fim da página, escreva uma mensagem, por exemplo `Selecionar e mover várias páginas juntas no Organizar`.
 6. Clique em **Commit changes**, na mesma branch usada pelo Render.
 
 Não envie PDFs pessoais, os modelos já assinados, backups de assinaturas ou arquivos de teste. Eles não estão neste ZIP.
@@ -44,7 +44,7 @@ Não envie PDFs pessoais, os modelos já assinados, backups de assinaturas ou ar
 
 Abra `https://pdf-livre.onrender.com/` e pressione **Ctrl + Shift + R** para atualizar sem o cache antigo.
 
-Verifique as ferramentas **Numerar**, **Carta**, **Assinar**, **Organizar** e **Excluir**. Em **Numerar**, abra um PDF e confira a sequência de 1 até a última página no arquivo baixado. Confirme que **assets/number-pages.js** foi publicado junto com o `index.html` e o `assets/tools.css` atualizados. Em Assinar, deve ser possível escolher vários PDFs; em Organizar, os cartões mostram **Página original** e **Posição no PDF** separadamente.
+Verifique as ferramentas **Numerar**, **Carta**, **Assinar**, **Organizar** e **Excluir**. Em **Numerar**, abra um PDF e confira a sequência de 1 até a última página no arquivo baixado. Confirme que **assets/number-pages.js** foi publicado junto com o `index.html` e o `assets/tools.css` atualizados. Em Assinar, deve ser possível escolher vários PDFs; em Organizar, os cartões mostram **Página original** e **Posição no PDF** separadamente. Marque várias caixas e arraste uma das páginas selecionadas: o grupo inteiro deve mover, mantendo a ordem, cores e números de origem. Confira também **Para o início**, **Para o fim** e **Começar na posição**.
 
 Se aparecer uma tela antiga, confirme que o Render publicou o commit mais recente. Se faltar alguma ferramenta ou fonte, confirme se `assets/` e `vendor/` foram enviados com todos os arquivos.
 

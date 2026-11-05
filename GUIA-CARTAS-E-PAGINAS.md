@@ -53,6 +53,20 @@ Cada cartão mostra:
 
 Exemplo: carregue um arquivo com 10 páginas e outro com 5. Mova a página 2 do arquivo 2 para entre as páginas 7 e 8 do arquivo 1. Ela continuará identificada como **Página 2 de 5 · Arquivo 2**, com a cor do arquivo 2; só sua posição no documento final muda.
 
+### Selecionar várias páginas e mover todas juntas — novo
+
+1. Em **Organizar**, abra um ou vários PDFs.
+2. Marque a caixa no canto superior esquerdo de cada página que deseja mover. Também é possível clicar no cartão. Podem ser páginas seguidas, afastadas ou de PDFs diferentes.
+3. Para selecionar um intervalo, marque a primeira página e use **Shift+clique** na última. **Selecionar todas** ou **Ctrl+A** marca o documento inteiro; **Limpar seleção** ou **Esc** desmarca.
+4. **Arraste qualquer uma das páginas marcadas**. Todas as selecionadas vão juntas. A marcação à esquerda/direita do cartão de destino indica se o grupo será inserido **antes/depois** daquela página.
+5. Confira as novas posições e clique em **Baixar PDF organizado**. O download inclui todas as páginas do documento, não apenas as selecionadas.
+
+O grupo mantém a ordem em que as páginas aparecem no documento antes do movimento, independentemente da ordem em que você marcou as caixas. As páginas que não foram selecionadas mantêm sua ordem relativa. A cor, arquivo e número original de cada página continuam iguais.
+
+**Alternativa ao arrasto, inclusive no celular:** depois de marcar as páginas, toque em **Para o início**, **Para o fim** ou informe **Começar na posição** e toque em **Mover**. Essa posição é a primeira página do grupo no PDF final: se houver três páginas selecionadas e você informar 8, elas ocuparão as posições 8, 9 e 10. Os botões de início/fim também aceitam soltar um grupo arrastado sobre eles.
+
+Arrastar uma página não marcada move somente ela, como antes. Soltar sobre uma página do próprio grupo ou cancelar o arrasto não reorganiza o documento. Adicionar PDFs, duplicar páginas ou inserir páginas em branco não confunde a seleção: cada cartão tem uma identidade própria. Os ícones de girar, duplicar e excluir de cada cartão continuam individuais; a seleção é usada para mover em grupo.
+
 Essa identificação é dos cartões da ferramenta. Organizar não altera os números impressos no documento. Para gravar a sequência nova de 1 até a última página dentro do PDF, use **Numerar**, conforme abaixo.
 
 ## Numerar todas as páginas — novo

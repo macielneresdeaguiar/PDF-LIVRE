@@ -209,7 +209,7 @@ footer b{color:var(--green)}
     <div class="tcard" onclick="go('organize')">
       <div class="ico organize">🗂️</div>
       <h3>Organizar PDF</h3>
-      <p>Veja todas as páginas em miniatura. Reordene arrastando, gire, exclua, insira páginas em branco e adicione outros PDFs.</p>
+      <p>Selecione várias páginas e arraste o grupo junto. Reordene, gire, exclua, insira páginas em branco e misture vários PDFs.</p>
     </div>
     <div class="tcard" onclick="go('compress')">
       <div class="ico compress">🗜️</div>
@@ -259,7 +259,7 @@ footer b{color:var(--green)}
 <section class="view" id="view-organize">
   <div class="tool-head">
     <h2>🗂️ Organizar PDF</h2>
-    <p>Arraste para reordenar. Cada página mantém a cor do arquivo e seu número original; a posição no PDF final é indicada separadamente.</p>
+    <p>Selecione várias páginas e arraste qualquer uma delas para mover o grupo inteiro, mantendo a ordem. Cada página conserva a cor e o número original.</p>
   </div>
   <div class="drop" id="org-drop">
     <div class="big">📥</div>
@@ -279,6 +279,11 @@ footer b{color:var(--green)}
       <button class="btn green" onclick="doOrganize()">Baixar PDF organizado ↓</button>
     </div>
     <p class="org-source-help">🎨 <b>Página</b> = número original dentro do arquivo. <b>Posição no PDF</b> = onde ela está agora no documento final. Mover não muda a origem.</p>
+    <div class="org-selection-tools" id="org-selection-tools">
+      <div class="org-selection-head"><strong id="org-selected-count" role="status" aria-live="polite">0 páginas selecionadas</strong><button class="btn ghost sm" id="org-select-all" onclick="orgSelectAll()">Selecionar todas</button><button class="btn ghost sm" id="org-clear-selection" onclick="orgClearSelection()" disabled>Limpar seleção</button></div>
+      <div class="org-selection-actions"><span class="hint">Mover selecionadas:</span><button class="btn ghost sm" id="org-move-start" onclick="orgMoveSelected('start')" disabled>⇤ Para o início</button><button class="btn ghost sm" id="org-move-end" onclick="orgMoveSelected('end')" disabled>Para o fim ⇥</button><label class="org-position-label" for="org-move-position">Começar na posição <input id="org-move-position" type="number" min="1" step="1" value="1" inputmode="numeric" onkeydown="if(event.key==='Enter'){event.preventDefault();orgMoveSelected('position')}" disabled></label><button class="btn sm" id="org-move-go" onclick="orgMoveSelected('position')" disabled>Mover</button></div>
+      <p id="org-selection-help">☑ Marque as páginas ou clique nos cartões e arraste uma das selecionadas para antes/depois de outra página. <b>Shift+clique</b> seleciona um intervalo; <b>Ctrl+A</b> seleciona todas; <b>Esc</b> limpa. No celular, use os botões para mover.</p>
+    </div>
     <div class="legend" id="org-legend"></div>
     <div class="pgrid" id="org-grid"></div>
   </div>
@@ -898,8 +903,98 @@ async function doMerge(){
 let orgDocs = {};   // docId -> {bytes, name, color}
 let orgPages = [];  // {uid, docId, pageIndex, rot, blank, thumbURL, label}
 let orgSeq = 0, orgDocSeq = 0, orgOriginalName='documento';
-let orgDragFrom = -1;
+let orgDragFrom = -1, orgDragUids = [];
+let orgSelection = new Set(), orgSelectionAnchor = null;
 const DOC_COLORS = ['#6c5ce7','#27c58c','#f5b954','#ff6b81','#5ec8f8','#e67ce6','#8bd450','#ff9f5a','#4dd7c7','#b3a1ff'];
+
+/* Seleção por UID: mover, duplicar ou inserir não troca a identidade das páginas. */
+function orgPruneSelection(){
+  const valid=new Set(orgPages.map(p=>p.uid));
+  orgSelection=new Set([...orgSelection].filter(uid=>valid.has(uid)));
+  if(!valid.has(orgSelectionAnchor))orgSelectionAnchor=null;
+}
+function orgUpdateSelectionUI(){
+  const count=orgSelection.size,total=orgPages.length;
+  $('#org-selected-count').textContent=count+' página'+(count===1?'':'s')+' selecionada'+(count===1?'':'s')+' de '+total;
+  $('#org-selection-tools').classList.toggle('has-selection',count>0);
+  $('#org-select-all').disabled=!total||count===total;
+  $('#org-clear-selection').disabled=!count;
+  ['#org-move-start','#org-move-end','#org-move-go','#org-move-position'].forEach(id=>$(id).disabled=!count);
+  const input=$('#org-move-position'),max=Math.max(1,total-count+1);input.max=max;
+  if(Number(input.value)>max)input.value=max;
+  document.querySelectorAll('#org-grid .pcard').forEach(card=>{
+    const uid=Number(card.dataset.uid),selected=orgSelection.has(uid);
+    card.classList.toggle('selected',selected);card.querySelector('.org-page-check').checked=selected;
+    card.querySelector('.org-pick').title=selected?'Desmarcar esta página':'Selecionar esta página para mover em grupo';
+  });
+}
+function orgSetPageSelected(uid,checked,extend=false){
+  if(orgDragUids.length)return;
+  const index=orgPages.findIndex(p=>p.uid===uid);if(index<0)return;
+  const anchor=orgPages.findIndex(p=>p.uid===orgSelectionAnchor);
+  const pages=extend&&anchor>=0?orgPages.slice(Math.min(anchor,index),Math.max(anchor,index)+1):[orgPages[index]];
+  pages.forEach(p=>checked?orgSelection.add(p.uid):orgSelection.delete(p.uid));
+  if(!extend||anchor<0)orgSelectionAnchor=uid;
+  orgUpdateSelectionUI();
+}
+function orgSelectAll(){
+  if(orgDragUids.length)return;
+  orgSelection=new Set(orgPages.map(p=>p.uid));orgSelectionAnchor=orgPages[0]?.uid??null;orgUpdateSelectionUI();
+}
+function orgClearSelection(){
+  orgFinishDrag();orgSelection.clear();orgSelectionAnchor=null;orgUpdateSelectionUI();
+}
+function orgFinishDrag(){
+  orgDragFrom=-1;orgDragUids=[];clearDropMarks();
+  document.querySelectorAll('#org-grid .dragging').forEach(card=>card.classList.remove('dragging'));
+  document.querySelectorAll('.org-move-drop').forEach(button=>button.classList.remove('org-move-drop'));
+  $('#org-drag-ghost')?.remove();
+}
+function orgMoveChosenTo(index,ids=orgSelection){
+  const chosen=new Set(ids),moved=orgPages.filter(p=>chosen.has(p.uid)),rest=orgPages.filter(p=>!chosen.has(p.uid));
+  if(!moved.length||!Number.isInteger(index)||index<0||index>rest.length)return false;
+  const next=[...rest.slice(0,index),...moved,...rest.slice(index)];
+  const changed=next.some((p,i)=>p.uid!==orgPages[i].uid);
+  orgFinishDrag();orgPages=next;orgSelection=new Set(moved.map(p=>p.uid));renderOrgGrid();
+  $('#org-move-position').value=index+1;
+  if(changed)toast('✅ '+moved.length+' página'+(moved.length===1?' movida':'s movidas juntas')+' para a posição '+(index+1)+'.');
+  return changed;
+}
+function orgMoveToBoundary(boundary,ids=orgSelection){
+  if(!Number.isInteger(boundary)||boundary<0||boundary>orgPages.length)return false;
+  const chosen=new Set(ids),index=orgPages.slice(0,boundary).filter(p=>!chosen.has(p.uid)).length;
+  return orgMoveChosenTo(index,chosen);
+}
+function orgMoveSelected(where){
+  orgPruneSelection();if(!orgSelection.size)return false;
+  const max=orgPages.length-orgSelection.size+1;
+  const position=where==='start'?1:where==='end'?max:Number($('#org-move-position').value);
+  if(!Number.isInteger(position)||position<1||position>max){toast('Digite uma posição inteira entre 1 e '+max+' para o início do grupo.',true);$('#org-move-position').focus();return false;}
+  return orgMoveChosenTo(position-1);
+}
+function orgStartPageDrag(event,uid){
+  if(!event.dataTransfer){event.preventDefault();return;}
+  const index=orgPages.findIndex(p=>p.uid===uid);if(index<0){event.preventDefault();return;}
+  if(!orgSelection.has(uid)){orgSelection=new Set([uid]);orgSelectionAnchor=uid;orgUpdateSelectionUI();}
+  orgDragFrom=index;orgDragUids=orgPages.filter(p=>orgSelection.has(p.uid)).map(p=>p.uid);
+  document.querySelectorAll('#org-grid .pcard').forEach(card=>card.classList.toggle('dragging',orgSelection.has(Number(card.dataset.uid))));
+  event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('application/x-pdf-livre','reorder-pages');event.dataTransfer.setData('text/plain',String(index));
+  const ghost=document.createElement('div');ghost.id='org-drag-ghost';ghost.setAttribute('aria-hidden','true');ghost.textContent='🗂️ '+orgDragUids.length+' página'+(orgDragUids.length===1?'':'s');document.body.append(ghost);
+  try{event.dataTransfer.setDragImage(ghost,18,18);}catch(_){}
+}
+/* Os botões também recebem o grupo arrastado; no celular, basta tocar neles. */
+['start','end'].forEach(where=>{
+  const button=$('#org-move-'+where);
+  button.addEventListener('dragover',e=>{if(!orgDragUids.length)return;e.preventDefault();e.dataTransfer.dropEffect='move';button.classList.add('org-move-drop');});
+  button.addEventListener('dragleave',()=>button.classList.remove('org-move-drop'));
+  button.addEventListener('drop',e=>{if(!orgDragUids.length)return;e.preventDefault();e.stopPropagation();orgMoveToBoundary(where==='start'?0:orgPages.length,orgDragUids.slice());});
+});
+document.addEventListener('keydown',e=>{
+  if(e.defaultPrevented||!$('#view-organize').classList.contains('active')||!orgPages.length||document.querySelector('#overlay.on,#dlmodal.on,#sigmodal.on,#sig-manage-modal.on'))return;
+  if(e.target.closest('textarea,select,[contenteditable],input:not([type="checkbox"]):not([type="radio"]):not([type="button"])'))return;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'){e.preventDefault();orgSelectAll();}
+  else if(e.key==='Escape'){e.preventDefault();orgClearSelection();}
+});
 
 setupDrop($('#org-drop'), fs=>orgLoadFiles(fs), true);
 async function orgAddFile(){ const fs=await pickFiles(true); if(fs.length) orgLoadFiles(fs); }
@@ -947,10 +1042,12 @@ function orgDup(i){
   renderOrgGrid();
 }
 function orgReset(){
+  orgFinishDrag();orgSelection.clear();orgSelectionAnchor=null;
   orgDocs={}; orgPages=[]; orgDocSeq=0; orgSeq=0; orgDragFrom=-1;
   $('#org-drop').style.display=''; $('#org-ws').classList.remove('on');
   $('#org-grid').innerHTML='';
   const lg=$('#org-legend'); if(lg) lg.innerHTML='';
+  $('#org-move-position').value=1;orgUpdateSelectionUI();
 }
 function renderOrgLegend(){
   const box=$('#org-legend');if(!box)return;box.replaceChildren();
@@ -963,31 +1060,46 @@ function renderOrgLegend(){
   });
 }
 function renderOrgGrid(){
+  orgFinishDrag();orgPruneSelection();
   const has=orgPages.length>0;$('#org-drop').style.display=has?'none':'';$('#org-ws').classList.toggle('on',has);
   $('#org-count').textContent=orgPages.length+' página'+(orgPages.length>1?'s':'');renderOrgLegend();
   const g=$('#org-grid');g.replaceChildren();
   orgPages.forEach((pg,idx)=>{
     const doc=pg.blank?null:orgDocs[pg.docId],color=doc?.color||'#8a93a8',sourcePage=pg.pageIndex+1,rotSwap=pg.rot%180!==0;
-    const el=document.createElement('div');el.className='pcard';el.draggable=true;el.dataset.idx=idx;el.dataset.uid=pg.uid;
+    const el=document.createElement('div');el.className='pcard';el.draggable=true;el.tabIndex=0;el.dataset.idx=idx;el.dataset.uid=pg.uid;
+    el.setAttribute('role','group');el.setAttribute('aria-describedby','org-selection-help');
     el.dataset.document=pg.docId||'';el.dataset.originalPage=pg.blank?'':sourcePage;el.dataset.fileNumber=doc?.fileNumber||'';el.dataset.originColor=color;
     el.style.borderColor=color+'77';el.style.background=color+'12';
     el.title=pg.blank?'Página em branco · posição '+(idx+1):'Arquivo '+doc.fileNumber+' — página original '+sourcePage+' de '+doc.numPages+' — '+doc.name+' · posição no PDF: '+(idx+1);
+    el.setAttribute('aria-label',el.title);
     const source=pg.blank?'Em branco':'Página '+sourcePage+' de '+doc.numPages;
     const filename=doc?escapeHtml(doc.name):'Página inserida';
     el.innerHTML=`<div class="docbar" style="background:${color}"></div>
+      <label class="org-pick" draggable="false" title="Selecionar esta página para mover em grupo"><input type="checkbox" class="org-page-check" draggable="false" aria-label="Selecionar ${pg.blank?'página em branco':'página '+sourcePage+' do arquivo '+doc.fileNumber}, posição ${idx+1}"></label>
       <button class="addbetween" title="Inserir página em branco aqui" onclick="event.stopPropagation();orgAddBlank(${idx})">＋</button>
       <div class="pv">${pg.blank?'<div class="blankpage">EM BRANCO</div>':`<img src="${pg.thumbURL}" draggable="false" style="transform:rotate(${pg.rot}deg)${rotSwap?';max-width:150px;max-height:100px':''}" alt="Página ${sourcePage} do arquivo ${doc.fileNumber}">`}</div>
       <div class="pnum"><strong class="psource"><span class="dot" style="background:${color}"></span>${source}</strong><span class="pfile">${doc?'Arquivo '+doc.fileNumber+' · ':''}${filename}</span><span class="porder">Posição no PDF: ${idx+1}${pg.copy?' · cópia':''}</span></div>
       <div class="ops"><button class="iconbtn" title="Girar 90°" onclick="event.stopPropagation();orgRotate(${idx})">⟳</button><button class="iconbtn" title="Duplicar página" onclick="event.stopPropagation();orgDup(${idx})">⧉</button><button class="iconbtn danger" title="Excluir página" onclick="event.stopPropagation();orgDelete(${idx})">🗑</button></div>`;
-    el.addEventListener('dragstart',e=>{orgDragFrom=idx;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('application/x-pdf-livre','reorder');e.dataTransfer.setData('text/plain',String(idx));});
-    el.addEventListener('dragend',()=>{el.classList.remove('dragging');orgDragFrom=-1;clearDropMarks();});
-    el.addEventListener('dragover',e=>{e.preventDefault();const r=el.getBoundingClientRect(),left=e.clientX-r.left<r.width/2;el.classList.toggle('dropside-l',left);el.classList.toggle('dropside-r',!left);});
+    el.querySelector('.org-page-check').addEventListener('click',e=>{e.stopPropagation();orgSetPageSelected(pg.uid,e.currentTarget.checked,e.shiftKey);});
+    el.addEventListener('click',e=>{if(e.target.closest('button,input,label,a'))return;orgSetPageSelected(pg.uid,!orgSelection.has(pg.uid),e.shiftKey);el.focus({preventScroll:true});});
+    el.addEventListener('keydown',e=>{if(e.target===el&&(e.key===' '||e.key==='Enter')){e.preventDefault();orgSetPageSelected(pg.uid,!orgSelection.has(pg.uid),e.shiftKey);}});
+    el.addEventListener('dragstart',e=>orgStartPageDrag(e,pg.uid));
+    el.addEventListener('dragend',orgFinishDrag);
+    el.addEventListener('dragover',e=>{
+      if(!orgDragUids.length)return;e.preventDefault();clearDropMarks();
+      if(orgDragUids.includes(pg.uid)){e.dataTransfer.dropEffect='none';return;}
+      e.dataTransfer.dropEffect='move';const r=el.getBoundingClientRect(),left=e.clientX-r.left<r.width/2;
+      el.classList.toggle('dropside-l',left);el.classList.toggle('dropside-r',!left);
+    });
     el.addEventListener('dragleave',()=>el.classList.remove('dropside-l','dropside-r'));
     el.addEventListener('drop',e=>{
-      e.preventDefault();const r=el.getBoundingClientRect(),left=e.clientX-r.left<r.width/2;let to=idx+(left?0:1);const from=orgDragFrom;clearDropMarks();orgDragFrom=-1;
-      if(from<0||from>=orgPages.length)return;if(to>from)to--;if(to!==from){const[moved]=orgPages.splice(from,1);orgPages.splice(to,0,moved);}renderOrgGrid();
+      if(!orgDragUids.length)return;e.preventDefault();e.stopPropagation();
+      if(orgDragUids.includes(pg.uid)){orgFinishDrag();return;}
+      const r=el.getBoundingClientRect(),left=e.clientX-r.left<r.width/2;
+      orgMoveToBoundary(idx+(left?0:1),orgDragUids.slice());
     });g.append(el);
   });
+  orgUpdateSelectionUI();
 }
 
 function clearDropMarks(){ document.querySelectorAll('.pcard').forEach(c=>c.classList.remove('dropside-l','dropside-r')); }
